@@ -1,9 +1,8 @@
-from Project.files import classes
+from PhotoZ.files import classes
 from matplotlib.backends.backend_pdf import PdfPages
 import ezgal
 import numpy as np
 import cPickle
-import decimal
 
 
 def read_image_objects(file_path="/Users/gbbtz7/GoogleDrive/Research/Data/images.pickle"):
@@ -33,6 +32,7 @@ def make_prediction_dictionary(spacing):
     zf = 3.0
     zs = np.arange(0.5, 1.5000001, spacing)
 
+
     # Normalize to Dai et al 2009
     # model.set_normalization(filter='ch1', mag=-25.06, apparent=False, vega=True, z=0.24)
     # Normalize to Coma
@@ -51,20 +51,17 @@ def make_prediction_dictionary(spacing):
     # slope_dict is a dictionary of keys = redshifts, values = slopes
     load_file.close()
 
-    # change redshifts to decimal format, so they don't get floating point errors
-    zs = [decimal.Decimal(str(round(z, 2))) for z in zs]
-
     # Initialize an empty list
     predictions_dict = dict()
 
     for i in range(len(zs)):
         predictions_dict[zs[i]] = classes.Predictions(redshift=zs[i],
-                                                      r_mag=mags[i][0],  # need to specify which filter
-                                                      i_mag=mags[i][1],
-                                                      z_mag=mags[i][2],
-                                                      ch1_mag=mags[i][3],
-                                                      ch2_mag=mags[i][4],
-                                                      slope=slope_dict[round(zs[i], 2)])
+                                                                r_mag=mags[i][0],  # need to specify which filter
+                                                                i_mag=mags[i][1],
+                                                                z_mag=mags[i][2],
+                                                                ch1_mag=mags[i][3],
+                                                                ch2_mag=mags[i][4],
+                                                                slope=slope_dict[round(zs[i], 2)])
         # zs are rounded, since they get floating point errors somewhere. They are like 0.60000004 before rounding.
 
     return predictions_dict

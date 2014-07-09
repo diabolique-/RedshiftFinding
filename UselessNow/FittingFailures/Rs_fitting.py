@@ -1,8 +1,8 @@
 # find the best redshift for each cluster by fitting the models to the red sequence
-from Project.files import main_functions
-from Project.files import models
-from Project.files import fitting
-from Project.files import  plotting
+from PhotoZ.files import main_functions
+from PhotoZ.files import models
+from PhotoZ.files import fitting
+from PhotoZ.files import  plotting
 import matplotlib.path as path
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt

@@ -1,9 +1,9 @@
 """
 Main function that will find the redshift of the red sequence. Recreates the plots from both Snyder 2012 and High 2010
 """
-from Project.Failures import RSfinding, models
+from PhotoZ.FittingFailures import RSfinding, models
 
-from Project.files import main_functions
+from PhotoZ.files import main_functions
 
 
 # read data in. read_data returns a list of image objects

@@ -3,7 +3,7 @@ import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol
 import matplotlib.cm as cmx
 
-from Project.files import models
+from PhotoZ.files import models
 
 
 def make_color_mag_plot(image, histogram=False, predictions=True, residuals=False):

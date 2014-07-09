@@ -1,6 +1,6 @@
-from Project.files import main_functions
-from Project.files import fitting
-from Project.files import plotting
+from PhotoZ.files import main_functions
+from PhotoZ.files import fitting
+from PhotoZ.files import plotting
 
 
 # need to read data in from file

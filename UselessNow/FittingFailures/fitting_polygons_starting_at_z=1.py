@@ -1,6 +1,6 @@
 # contains function used for fitting the redshfit to the cluster
-from Project.files import plotting
-from Project.files import main_functions
+from PhotoZ.files import plotting
+from PhotoZ.files import main_functions
 import matplotlib.path as path
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt

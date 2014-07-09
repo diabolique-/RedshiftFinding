@@ -1,4 +1,4 @@
-from Project.files import  main_functions
+from PhotoZ.files import  main_functions
 import ezgal
 import  matplotlib.pyplot as plt
 

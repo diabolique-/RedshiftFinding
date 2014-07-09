@@ -1,6 +1,6 @@
 import os
 import cPickle
-from Project.files import classes
+from PhotoZ.files import classes
 
 # Reads the data in from the file, turns it into objects, and saves it so it can be used later
 

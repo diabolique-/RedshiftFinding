@@ -1,7 +1,7 @@
 # Gillen Brown
 # main_colormag.py - Attempts to recreate the color mag diagrams of Stanford 2014
-from Project.files import plotting
-from Project.files import main_functions
+from PhotoZ.files import plotting
+from PhotoZ.files import main_functions
 
 
 # read data in. read_data returns a list of image objects

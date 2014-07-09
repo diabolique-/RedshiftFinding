@@ -5,7 +5,7 @@ import matplotlib.colors as mplcol
 import matplotlib.cm as cmx
 import numpy.polynomial.polynomial as polynomial
 import numpy as np
-from Project.files import main_functions
+from PhotoZ.files import main_functions
 
 
 def plot_color_mag(image, predictions=True, distinguish_red_sequence=False):
