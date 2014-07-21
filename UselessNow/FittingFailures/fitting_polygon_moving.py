@@ -22,7 +22,7 @@ def find_rs_redshift_color_cuts(image, fine_predictions,  coarse_predictions, pl
 
     The plots of the polygon superimposed on the CMD for each cluster can also be plotted.
 
-    :param image: Image object of the image containing the cluster that the photometric redshift will be found for
+    :param image: Cluster object of the image containing the cluster that the photometric redshift will be found for
     :param fine_predictions: dictionary containing keys of redshifts and values containing predictions objects. This
            dictionary should have closer spacing of redshifts, to make fitting more accurate.
     :param coarse_predictions: same as fine_predictions, but containing redshifts spaced farther apart. This wil be used
@@ -121,7 +121,7 @@ def image_chi_square_polygon(image, model_line, polygon):
 
     Reduced chi-squared = sum(((model - data)/error)**2) / number of data points
 
-    :param image: Image object of the cluster to be fitted
+    :param image: Cluster object of the cluster to be fitted
     :param model_line: Line that will be fitted to the data. List of lists with dimensions[[x values], [y values]]
     :param polygon: Polygon of cuts. Only galaxies inside the polygon (within the cuts) will be kept.
     :return: Reduced chi-squared value

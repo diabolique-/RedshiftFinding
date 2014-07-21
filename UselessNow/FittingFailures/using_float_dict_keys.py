@@ -1,4 +1,4 @@
-from PhotoZ.files import classes
+from PhotoZ.files import other_classes
 from matplotlib.backends.backend_pdf import PdfPages
 import ezgal
 import numpy as np
@@ -55,7 +55,7 @@ def make_prediction_dictionary(spacing):
     predictions_dict = dict()
 
     for i in range(len(zs)):
-        predictions_dict[zs[i]] = classes.Predictions(redshift=zs[i],
+        predictions_dict[zs[i]] = other_classes.Predictions(redshift=zs[i],
                                                                 r_mag=mags[i][0],  # need to specify which filter
                                                                 i_mag=mags[i][1],
                                                                 z_mag=mags[i][2],

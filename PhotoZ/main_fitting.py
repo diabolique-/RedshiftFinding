@@ -1,17 +1,12 @@
 from PhotoZ.files import main_functions
-from PhotoZ.files import fitting
 from PhotoZ.files import plotting
 
 
 # need to read data in from file
-images = main_functions.read_image_objects()
+clusters = main_functions.read_cluster_objects()
 
-# Only use r-z ones for now
-images = [i for i in images if i.filters == ["r", "z"]]
-
-
-# get predictions
-predictions_dict = main_functions.make_prediction_dictionary(0.01)
+# Only use ones with r-z data for now
+clusters = [c for c in clusters if c.filters == ["r", "z"]]
 
 
 # Make empty list for plots, will append later
@@ -19,15 +14,20 @@ residual_plots = []
 cmd_figs = []
 
 # find the best fit
-for i in images:
-    cmd_figs.append(fitting.fit_z(i, predictions_dict))
+for c in clusters:
+    # c.fit_z()  # No plot
+    c.fit_z(cmd_figs)  # Plots
+    # WARNING: If plotting is used for both the beginning, end, and the fitting procedure, it would be wise to reduce
+    # the iterations in the bootstrapping (or change the _find_rs_redshift call in _bootstrap) or you will literally
+    # get >1000 plots, and it will slow the computer to a halt.
 
-    # Write results to the file
-    print i.name + ", spec z = " + str(i.spec_z) + ", photo z = " + str(i.photo_z)
+    # Print results, to see progress.
+    print c.name + ", spec z = " + str(c.spec_z) + ", photo z = " + str(c.photo_z) + ", photo z error = " + str(
+           round(c.photo_z_error, 3))
 
-
+# Save pdfs
 if cmd_figs:
     main_functions.save_as_one_pdf(cmd_figs, "/Users/gbbtz7/GoogleDrive/Research/Plots/Cuts.pdf")
 
 # Plot redshift comparison
-plotting.plot_z_comparison(images, "/Users/gbbtz7/GoogleDrive/Research/Plots/", "Spec_z_vs_photo_z")
+plotting.plot_z_comparison(clusters, "/Users/gbbtz7/GoogleDrive/Research/Plots/", "Spec_z_vs_photo_z")

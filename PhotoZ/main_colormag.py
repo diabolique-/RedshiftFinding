@@ -5,13 +5,13 @@ from PhotoZ.files import main_functions
 
 
 # read data in. read_data returns a list of image objects
-images = main_functions.read_image_objects()
+images = main_functions.read_cluster_objects()
 
 # Only use r-z ones for now
 images = [i for i in images if i.filters == ["r", "z"]]
 
 # Now we can make our plots, and put the figures into a list, to be saved later
-# figs = [plotting.plot_color_mag(image, predictions=True) for image in images]
+# figs = [plotting.plot_color_mag(image, predictions=True) for image in clusters]
 figs = []
 for image in images:
     fig, ax = plotting.plot_color_mag(image, predictions=True)

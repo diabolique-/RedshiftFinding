@@ -2,7 +2,7 @@ from PhotoZ.files import  main_functions
 import ezgal
 import  matplotlib.pyplot as plt
 
-images = main_functions.read_image_objects()
+images = main_functions.read_cluster_objects()
 
 for i in images:
     ras = [gal.ra for gal in i.galaxy_list]
