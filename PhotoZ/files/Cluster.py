@@ -39,6 +39,8 @@ class Cluster(object):
     def __repr__(self):
         return self.name + "; spec z = " + str(self.spec_z)
 
+    # TODO: Set this to work without bootstrapping, and instead with chi-squared interval sigma estimation
+
     def fit_z(self, plot_figures=None):
         """Find the redshift of the cluster by matching its red sequence to the models.
         Basically works as the main function for this process. Other functions are called to do the dirty work.
@@ -48,31 +50,62 @@ class Cluster(object):
         :return: None, but the instance variables for photometric redshift and photo z error are set inside.
         """
         # Find a good starting redshift to base the rest of the work on, and set RS membership
-        initial_z = self._find_initial_redshift(plot_bar=False)
-        self._set_as_rs_member(self.galaxy_list, initial_z, -0.3, 0.8, bright_mag_cut=-1.5, faint_mag_cut=0.6)
+        initial_z = self._find_initial_redshift(plot_bar=True)
+
+        bluer_color_cut = [-0.30, -0.25, -0.20]
+        redder_color_cut = [0.4, 0.3, 0.2]
+        brighter_mag_cut = -1.4
+        dimmer_mag_cut = 0.6
+        self._set_as_rs_member(self.galaxy_list, initial_z, bluer_color_cut[0], redder_color_cut[0],
+                               brighter_mag_cut, dimmer_mag_cut)
 
         # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
         if type(plot_figures) is list:
             # Plot with predictions
             plot_figures.append(plotting.plot_color_mag(self, predictions=True, distinguish_red_sequence=False))
             # Need [0] since the function returns figure and axes objects, and [0] gives just the figure.
-            # Plot the initial cut
-            plot_figures.append(plotting.plot_fitting_procedure(self, initial_z, "Initial Fitting"))
+            # Plot the initial cut with RS based on the initial cut
+            plot_figures.append(plotting.plot_fitting_procedure(self, initial_z, other_info="Initial Fitting",
+                                                                color_red_sequence=False))
             # Plot location of initial cut
-            plot_figures.append(plotting.plot_location(self))
+            # plot_figures.append(plotting.plot_location(self))
 
-        # Use the bootstrapping method to refine the redshift estimation
-        self._bootstrap(initial_z, plot_figures)
+        # Want to do three decreasing sized color cuts around the best fit redshift so far, to gradually hone in on
+        # the correct redshift.
+
+        best_z = initial_z
+        z_error = 999
+        for i in range(len(bluer_color_cut)):
+
+            # Use the bootstrapping method to find the best fit redshift within the color cut specified.
+            # First need to set RS memebers
+            self._set_as_rs_member(self.galaxy_list, best_z, bluer_color_cut[i], redder_color_cut[i],
+                                   brighter_mag_cut, dimmer_mag_cut)
+
+            # Plot most recent redshift estimate
+            plot_figures.append(plotting.plot_fitting_procedure(self, best_z, other_info="Cut " + str(i+1)))
+
+            #best_z, z_error = self._bootstrap(best_z, plot_figures) # Plot process
+            best_z, z_error = self._bootstrap(best_z)  # No plotting of process
+
+
+
+
+        # Set cluster attributes, now that the process is complete
+        self.photo_z = best_z
+        self.photo_z_error = z_error
+
 
         # Plot final redshift on CMD
         if type(plot_figures) is list:
-            plot_figures.append(plotting.plot_fitting_procedure(self, self.photo_z, "Final Redshift"))
-            plot_figures.append(plotting.plot_location(self))
+            plot_figures.append(plotting.plot_fitting_procedure(self, self.photo_z, "Final Redshift",
+                                                                color_red_sequence=False))
+            # plot_figures.append(plotting.plot_location(self))
 
     def _find_initial_redshift(self, plot_bar=True):
         """Find a good redshift for the cluster, based on the highest number of galaxies near a predicted RS line.
 
-        Iterates through all redshifts, and counts the number of galaxies within 1.5 sigma of the model line. Then
+        Iterates through all redshifts, and counts the number of galaxies within 0.1 color of the model line. Then
         the redshift that has the highest number of galaxies (including some contributions from neighboring
         redshifts) is the redshift selected. This redshift is not necessarily the best fit, just a good starting
         place for more sophisticated fitting.
@@ -86,19 +119,14 @@ class Cluster(object):
 
         # Iterate through each redshift we have predictions for
         for z in sorted(self.predictions_dict.iterkeys()):  # need to be sorted, since we will be including neighbors
-            galaxies = 0
-            # For each galaxy, find out whether it would be a RS member if the cluster is at that redshift
+            rs_members = 0
+            self._set_as_rs_member(self.galaxy_list, z, -0.1, 0.1, -2.0, 0.5)
             for gal in self.galaxy_list:
-                # Simple magnitude cut that is where the RS will be, along with error limits
-                if self.predictions_dict[z].z_mag - 1.2 < gal.mag < self.predictions_dict[z].z_mag + 0.7 \
-                        and gal.color_error < 0.2:
-                    idx = self.predictions_dict[z].rz_line.xs.index(gal.mag)
-                    # If it's within color cut, increment counter
-                    if abs(self.predictions_dict[z].rz_line.ys[idx] - gal.color) < 0.10:
-                        galaxies += 1
+                if gal.RS_member:
+                    rs_members += 1
 
             # Append the results to lists
-            galaxies_list.append(galaxies)
+            galaxies_list.append(rs_members)
             z_list.append(z)
 
         # The best redshift will be the one with the most RS galaxies. Since the data is noisy, adding the 3 neighbors
@@ -129,81 +157,35 @@ class Cluster(object):
         :return: None. Does set the instance variables of this cluster for the photometric redshift, along with its
                  error.
         """
-        # Need to define an initial sample, so we can resample from it later.
-        self._set_as_rs_member(self.galaxy_list, initial_z, -0.3, 0.8, -1.5, 0.6)
+
         whole_sample = [gal for gal in self.galaxy_list if gal.RS_member]
         z_list = []
 
         for i in range(0, 100):
             # Create a new random sample, find it's photometric redshift, and append it to a list
             random_resample = main_functions.sample_with_replacement(whole_sample, len(whole_sample))
-            #this_z = self._find_rs_redshift(initial_z, random_resample, figs)  # To plot fitting procedure
-            this_z = self._find_rs_redshift(initial_z, random_resample)  # No plotting of fitting procudure
+            this_z = self._fit_redshift(random_resample)
+            if type(figs) is list:
+                figs.append(plotting.plot_fitting_procedure(self, this_z, other_info="iteration" + str(i+1)))
             z_list.append(this_z)
 
         # the numpy median and standard deviation functions don't play nice with strings, so we need to make them floats
         float_z_list = [float(z) for z in z_list]
         # The photometric redshift should still be in string format, again to avoid floating point errors with dict keys
-        self.photo_z = str(round(np.median(float_z_list), 2))
-        self.photo_z_error = np.std(float_z_list)  # Is fine as a float
+        photo_z = str(round(np.median(float_z_list), 2))
+        photo_z_error = np.std(float_z_list)  # Is fine as a float
+        return photo_z, photo_z_error
 
-        # Set RS membership to final redshift
-        self._set_as_rs_member(self.galaxy_list, self.photo_z, -0.15, 0.4, -1.5, 0.6)
-
-    def _find_rs_redshift(self, initial_z, galaxies, figures=None):
-        """Use an iterative process to find the best redshift for the given galaxies in the red sequence.
-
-        The galaxies passed in will be cut down with a color cut around the initial redshift, then a new redshift will
-        be fit to these galaxies. Then a smaller color cut will be applied around this new redshift, and another
-        redshift will be fitted. This process will be repeated 3 times, which should be enough time for the fit to
-        converge on the correct redshift for the given galaxies.
-
-        :param initial_z: redshift the cut will be made around. Where the fitting starts.
-        :param galaxies: List of galaxies that will be fit by a red sequence prediction for redshift.
-        :param figures: List or not, where plots will be appended. Pass a list in to plot. If nothing is passed into
-        this parameter, the process of fitting will not be plotted.
-        :return: redshift that provides the best red sequence fit to the galaxies passed in.
-        """
-
-        best_z = initial_z
-
-        lower_color_cut = [-0.2, -0.15, -0.15]
-        upper_color_cut = [0.6, 0.5, 0.4]
-        # Will use 3 iterations of smaller cuts. Too few will not find the RS correctly, while too many will take
-        #  a long time to run. Hopefully this is a good balance.
-        for i in range(len(lower_color_cut)):
-            # Keep track of the redshift for this iteration, will use it to restrict which redshifts we test
-            intermediate_z = best_z
-
-            # Set galaxies as RS members if they are within the color cut, and make that the sample
-            self._set_as_rs_member(galaxies, best_z, lower_color_cut[i], upper_color_cut[i])
-            sample = [gal for gal in galaxies if gal.RS_member]
-
-            # Now we can do the fitting on this sample.
-            best_chi_squared = 314159  # I used this distinctive value so if it doesn't get replaced, I can tell
-            for z in self.predictions_dict:
-                # Only want to test redshifts that are close to most recent guess, to not waste time
-                if abs(float(intermediate_z) - float(z)) < 0.15:
-                    temp_chi_squared = main_functions.simple_chi_square(sample, self.predictions_dict[z].rz_line)
-                    if temp_chi_squared < best_chi_squared:
-                        best_z = z
-                        best_chi_squared = temp_chi_squared
-
-            if type(figures) is list:  # Plot if we want to plot
-                figures.append(plotting.plot_fitting_procedure(self, best_z, "cut " + str(i + 1)))
-
-        if float(best_z) > 1.5:  # Something went wrong , so print helpful info
-            print "\n#############################################\n"
-            print "Something went wrong with the fitting procedure once"
-            print "Best z =", best_z
-            print "Best chi squared", best_chi_squared
-            print "Started at z =", initial_z
-            print "Cluster's spec z =", self.spec_z
-            print "Sample has length:", len(sample)
-            print "Here's the whole sample"
-            print sample
-            print "#################################################\n"
-
+    def _fit_redshift(self, galaxies):
+        # TODO: Document
+        # set placeholders
+        best_chi_squared = 999
+        best_z = 999
+        for z in sorted(self.predictions_dict.iterkeys()):  # redshifts in order, so we can look at chi distribution
+            temp_chi_squared = main_functions.simple_chi_square(galaxies, self.predictions_dict[z].rz_line)
+            if temp_chi_squared < best_chi_squared:
+                best_z = z
+                best_chi_squared = temp_chi_squared
         return best_z
 
     def _set_as_rs_member(self, galaxies, redshift, bluer_color_residual_cut, redder_color_residual_cut,
