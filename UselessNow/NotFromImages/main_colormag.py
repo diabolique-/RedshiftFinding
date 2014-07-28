@@ -1,10 +1,10 @@
 # Gillen Brown
 # main_colormag.py - Attempts to recreate the color mag diagrams of Stanford 2014
-from PhotoZ.files import plotting
-from PhotoZ.files import main_functions
 
 
 # read data in. read_data returns a list of cluster objects
+from UselessNow.NotFromImages import plotting, main_functions
+
 clusters = main_functions.read_cluster_objects()
 
 # Now we can make our plots, and put the figures into a list, to be saved later

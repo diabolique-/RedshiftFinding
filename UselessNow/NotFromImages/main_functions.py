@@ -1,11 +1,13 @@
-from PhotoZ.files import other_classes
-from matplotlib.backends.backend_pdf import PdfPages
-import ezgal
-import numpy as np
 import cPickle
 import math
 import random
 import os
+
+from matplotlib.backends.backend_pdf import PdfPages
+import ezgal
+import numpy as np
+
+from UselessNow.NotFromImages import other_classes
 
 
 def read_cluster_objects(file_path="/Users/gbbtz7/GoogleDrive/Research/Data/PythonSavedClusters"):
@@ -137,3 +139,25 @@ def sample_with_replacement(data, sample_length):
     """
     # Pick the desired number of random data points. Data points can be selected twice.
     return [random.choice(data) for i in range(sample_length)]
+
+
+def find_all_objects(enclosing_directory, extension, files_list):
+
+    # TODO: document
+    # Make sure enclosing directory has a finishing /
+    if not enclosing_directory.endswith("/"):
+        enclosing_directory += "/"
+
+    for f in os.listdir(enclosing_directory):
+        # Determine if the item is a directory or not
+        entire_path = enclosing_directory + f
+        if os.path.isdir(entire_path):
+
+            find_all_objects(entire_path, extension, files_list)
+        else:
+            if entire_path.endswith(extension):
+                files_list.append(entire_path)
+    return files_list
+    # We technically don't need to return files_list, since changes in it will be reflected in the main program,
+    # but often the user will just pass in an empty list without assigning it first. In this case, we need to return
+    # something.

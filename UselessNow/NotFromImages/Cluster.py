@@ -1,7 +1,9 @@
-from PhotoZ.files import main_functions
-from PhotoZ.files import plotting
 import math
+
 import numpy as np
+
+from UselessNow.NotFromImages import main_functions
+from UselessNow.NotFromImages import plotting
 
 
 class Cluster(object):
@@ -42,8 +44,6 @@ class Cluster(object):
 
     def __repr__(self):
         return self.name + "; spec z = " + str(self.spec_z)
-
-    # TODO: Set this to work without bootstrapping, and instead with chi-squared interval sigma estimation
 
     def fit_z(self, plot_figures=None):
         """Find the redshift of the cluster by matching its red sequence to the models.

@@ -1,6 +1,7 @@
-from PhotoZ.files import  main_functions
-import ezgal
 import  matplotlib.pyplot as plt
+
+from UselessNow.NotFromImages import main_functions
+
 
 images = main_functions.read_cluster_objects()
 

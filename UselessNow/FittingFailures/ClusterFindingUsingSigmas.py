@@ -1,6 +1,7 @@
-from PhotoZ.files import main_functions
-from PhotoZ.files import plotting
 import numpy as np
+
+from PhotoZ.files import main_functions
+from UselessNow.NotFromImages import plotting
 
 
 class Cluster(object):

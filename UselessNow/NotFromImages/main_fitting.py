@@ -1,8 +1,6 @@
-from PhotoZ.files import main_functions
-from PhotoZ.files import plotting
-
-
 # need to read data in from file
+from UselessNow.NotFromImages import plotting, main_functions
+
 clusters = main_functions.read_cluster_objects()
 
 # Only use ones with r-z data for now

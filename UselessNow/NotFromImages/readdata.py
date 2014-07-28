@@ -1,8 +1,9 @@
 import os
 import os.path as path
 import cPickle
-from PhotoZ.files import other_classes
-from PhotoZ.files import Cluster
+
+from UselessNow.NotFromImages import other_classes
+from UselessNow.NotFromImages import Cluster
 
 
 def make_data_list(directory, paths_list):
