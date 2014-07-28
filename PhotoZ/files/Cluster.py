@@ -1,5 +1,6 @@
 from PhotoZ.files import main_functions
 from PhotoZ.files import plotting
+import math
 import numpy as np
 
 
@@ -34,7 +35,10 @@ class Cluster(object):
         else:
             self.spec_z = None
         self.photo_z = 0.0
-        self.photo_z_error = 0.0
+        self.upper_photo_z_error = 0.0
+        self.lower_photo_z_error = 0.0
+
+
 
     def __repr__(self):
         return self.name + "; spec z = " + str(self.spec_z)
@@ -50,9 +54,19 @@ class Cluster(object):
         :return: None, but the instance variables for photometric redshift and photo z error are set inside.
         """
         # Find a good starting redshift to base the rest of the work on, and set RS membership
+        if type(plot_figures) is list:
+            plot_figures.append(plotting.plot_color_mag(self, predictions=False))
+
+        # if "G" in self.name:
+        # if True:
+            # plot_figures.append(self._find_location_cut())
+            # self._find_location_cut()
+
         initial_z = self._find_initial_redshift(plot_bar=True)
 
         bluer_color_cut = [-0.30, -0.25, -0.20]
+        if self.name.startswith("MOO1636"):
+            bluer_color_cut = [-0.2, -0.2, -0.2]  # Override to avoid "foregrounds." Not sure if actually foregrounds
         redder_color_cut = [0.4, 0.3, 0.2]
         brighter_mag_cut = -1.4
         dimmer_mag_cut = 0.6
@@ -63,44 +77,61 @@ class Cluster(object):
         if type(plot_figures) is list:
             # Plot with predictions
             plot_figures.append(plotting.plot_color_mag(self, predictions=True, distinguish_red_sequence=False))
-            # Need [0] since the function returns figure and axes objects, and [0] gives just the figure.
             # Plot the initial cut with RS based on the initial cut
             plot_figures.append(plotting.plot_fitting_procedure(self, initial_z, other_info="Initial Fitting",
                                                                 color_red_sequence=False))
             # Plot location of initial cut
-            # plot_figures.append(plotting.plot_location(self))
+            plot_figures.append(plotting.plot_location(self))
+            pass  # So when I comment all the plots out it still runs
+
+
 
         # Want to do three decreasing sized color cuts around the best fit redshift so far, to gradually hone in on
         # the correct redshift.
 
         best_z = initial_z
-        z_error = 999
+        z_upper_error, z_lower_error = 999, 999
         for i in range(len(bluer_color_cut)):
 
             # Use the bootstrapping method to find the best fit redshift within the color cut specified.
             # First need to set RS memebers
             self._set_as_rs_member(self.galaxy_list, best_z, bluer_color_cut[i], redder_color_cut[i],
                                    brighter_mag_cut, dimmer_mag_cut)
+            sample = [gal for gal in self.galaxy_list if gal.RS_member]
 
             # Plot most recent redshift estimate
             plot_figures.append(plotting.plot_fitting_procedure(self, best_z, other_info="Cut " + str(i+1)))
 
-            #best_z, z_error = self._bootstrap(best_z, plot_figures) # Plot process
-            best_z, z_error = self._bootstrap(best_z)  # No plotting of process
+            chi_redshift_list = self._fit_redshift_to_sample(sample)
+
+            best_z, z_lower_error, z_upper_error = self._get_stats_from_chi(chi_redshift_list)
 
 
 
 
         # Set cluster attributes, now that the process is complete
         self.photo_z = best_z
-        self.photo_z_error = z_error
+        self.upper_photo_z_error = z_upper_error
+        self.lower_photo_z_error = z_lower_error
+        print "upper:", z_upper_error, "lower:", z_lower_error
+
+        # Make final RS cut, which will be slightly larger than the cut used to identify the RS
+        self._set_as_rs_member(self.galaxy_list, self.photo_z, -0.3, 0.6, -1.2, 1.0)
+        # Override for lower redshift struture, since there is a higher structure that gets in the way
+        if self.name.startswith("MOO2214"):
+            self._set_as_rs_member(self.galaxy_list, self.photo_z, -0.2, 0.2, -1.2, 0.8)
+        if self.name.startswith("MOO1636"):
+            self._set_as_rs_member(self.galaxy_list, self.photo_z, -0.3, 0.6, -1.6, 1.0)
 
 
         # Plot final redshift on CMD
         if type(plot_figures) is list:
             plot_figures.append(plotting.plot_fitting_procedure(self, self.photo_z, "Final Redshift",
-                                                                color_red_sequence=False))
-            # plot_figures.append(plotting.plot_location(self))
+                                                                color_red_sequence=True))
+            plot_figures.append(plotting.plot_location(self))
+
+        # self._write_rs_catalog()
+
 
     def _find_initial_redshift(self, plot_bar=True):
         """Find a good redshift for the cluster, based on the highest number of galaxies near a predicted RS line.
@@ -120,7 +151,7 @@ class Cluster(object):
         # Iterate through each redshift we have predictions for
         for z in sorted(self.predictions_dict.iterkeys()):  # need to be sorted, since we will be including neighbors
             rs_members = 0
-            self._set_as_rs_member(self.galaxy_list, z, -0.1, 0.1, -2.0, 0.5)
+            self._set_as_rs_member(self.galaxy_list, z, -0.1, 0.1, -1.4, 0.5)  # 3rd spot could be -2.0
             for gal in self.galaxy_list:
                 if gal.RS_member:
                     rs_members += 1
@@ -145,48 +176,43 @@ class Cluster(object):
 
         return best_z
 
-    def _bootstrap(self, initial_z, figs=None):
-        """Use bootstrapping resampling with replacement to estimate the best photometric redshift for the cluster.
-
-        Does 100 iterations, where the redshift is calculated on each random resample with replacement. The mean
-        value of these 100 redshifts will be the cluster's redshift, and the standard deviation of the redshifts is
-        the error.
-
-        :param initial_z: Redshift where the process starts. Is passed to the _find_rs_redshift function, which uses
-                          it more than this function.
-        :return: None. Does set the instance variables of this cluster for the photometric redshift, along with its
-                 error.
-        """
-
-        whole_sample = [gal for gal in self.galaxy_list if gal.RS_member]
-        z_list = []
-
-        for i in range(0, 100):
-            # Create a new random sample, find it's photometric redshift, and append it to a list
-            random_resample = main_functions.sample_with_replacement(whole_sample, len(whole_sample))
-            this_z = self._fit_redshift(random_resample)
-            if type(figs) is list:
-                figs.append(plotting.plot_fitting_procedure(self, this_z, other_info="iteration" + str(i+1)))
-            z_list.append(this_z)
-
-        # the numpy median and standard deviation functions don't play nice with strings, so we need to make them floats
-        float_z_list = [float(z) for z in z_list]
-        # The photometric redshift should still be in string format, again to avoid floating point errors with dict keys
-        photo_z = str(round(np.median(float_z_list), 2))
-        photo_z_error = np.std(float_z_list)  # Is fine as a float
-        return photo_z, photo_z_error
-
-    def _fit_redshift(self, galaxies):
+    def _fit_redshift_to_sample(self, galaxies):
         # TODO: Document
         # set placeholders
-        best_chi_squared = 999
-        best_z = 999
+        chi_squared_redshift_pairs = []
         for z in sorted(self.predictions_dict.iterkeys()):  # redshifts in order, so we can look at chi distribution
             temp_chi_squared = main_functions.simple_chi_square(galaxies, self.predictions_dict[z].rz_line)
-            if temp_chi_squared < best_chi_squared:
-                best_z = z
-                best_chi_squared = temp_chi_squared
-        return best_z
+            chi_squared_redshift_pairs.append((z, temp_chi_squared))
+
+        return chi_squared_redshift_pairs
+
+    def _get_stats_from_chi(self, chi_redshift_pairs, figs=None):
+        # TODO: Document
+
+        best_chi = 999
+        best_z = 999
+        for pair in chi_redshift_pairs:
+            if pair[1] < best_chi:
+                best_z = pair[0]
+                best_chi = pair[1]
+
+        # now find error limits
+        left_limit = 1.6
+        right_limit = 0.4
+        for pair in chi_redshift_pairs:
+            if pair[1] < best_chi + 1.0:  # Within one sigma
+                if float(pair[0]) < float(best_z):  # Will be left limit
+                    if float(pair[0]) < left_limit:
+                        left_limit = float(pair[0])
+                else:  # Will be right limit
+                    if float(pair[0]) > right_limit:
+                        right_limit = float(pair[0])
+
+        if type(figs) is list:
+            figs.append(plotting.plot_chi_data(self, chi_redshift_pairs, left_limit, best_z, right_limit))
+        lower_error = float(best_z) - float(left_limit)
+        upper_error = float(right_limit) - float(best_z)
+        return best_z, lower_error, upper_error
 
     def _set_as_rs_member(self, galaxies, redshift, bluer_color_residual_cut, redder_color_residual_cut,
                           bright_mag_cut=-999.9,  faint_mag_cut=999.9):
@@ -229,3 +255,47 @@ class Cluster(object):
                 gal.color_residual = gal.color - best_z_line.ys[idx]
             else:
                 gal.color_residual = 999
+
+    def _find_location_cut(self):
+
+        median_ra = np.median([gal.ra for gal in self.galaxy_list])
+        median_decs = np.median([gal.dec for gal in self.galaxy_list])
+
+        # Override for one cluster
+        if self.name.startswith("MOO1636"):
+            median_decs += 0.008  # best so far is 0.008
+            median_ra += 0.005  # best so far is 0.005
+        print median_ra, median_decs
+
+        gals_in_location = []
+
+        for gal in self.galaxy_list:
+            dist = math.sqrt((gal.ra - median_ra)**2 + (gal.dec - median_decs)**2)
+            if self.name.startswith("MOO2214"):
+                # For more distant MOO2214, use 0.0 < 1.0
+                # for less distant MOO2214, use 0.0 < 2.0
+                if dist < 1.0/60.0:
+                    gals_in_location.append(gal)
+                    gal.RS_member = True
+            if self.name.startswith("MOO1636"):
+                # best for MOO1636: 0 < 1.3
+                if dist < 1.3/60.0:
+                    gals_in_location.append(gal)
+                    gal.RS_member = True
+        # fig = plotting.plot_location(self)
+        self.galaxy_list = gals_in_location
+        # return fig
+
+    def _write_rs_catalog(self):
+        # TODO: Document
+        # write red sequence catalog to file
+        rs_catalog = open("/Users/gbbtz7/GoogleDrive/Research/Data/ClusterData/RS_catalogs/" + self.name[:-1] +
+                          "_rs_members.phot.dat", "w")
+        rs_catalog.write("# id    ra            dec          zmag     rmz    rmze\n")
+        for gal in self.galaxy_list:
+            if gal.RS_member:
+                rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
+                                 "    " + str(gal.color) + "    " + str(gal.color_error) + "\n")
+        rs_catalog.close()
+
+

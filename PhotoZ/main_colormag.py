@@ -4,18 +4,12 @@ from PhotoZ.files import plotting
 from PhotoZ.files import main_functions
 
 
-# read data in. read_data returns a list of image objects
-images = main_functions.read_cluster_objects()
-
-# Only use r-z ones for now
-images = [i for i in images if i.filters == ["r", "z"]]
+# read data in. read_data returns a list of cluster objects
+clusters = main_functions.read_cluster_objects()
 
 # Now we can make our plots, and put the figures into a list, to be saved later
-# figs = [plotting.plot_color_mag(image, predictions=True) for image in clusters]
-figs = []
-for image in images:
-    fig, ax = plotting.plot_color_mag(image, predictions=True)
-    figs.append(fig)
+figs = [plotting.plot_color_mag(cluster) for cluster in clusters]  # only use
+#  r-z now
 
 # Save the pdfs as one file
 main_functions.save_as_one_pdf(figs, "/Users/gbbtz7/GoogleDrive/Research/Plots/ColorMagPlots.pdf")

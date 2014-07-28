@@ -17,7 +17,6 @@ def make_data_list(directory, paths_list):
         full_path = directory + "/" + f
         # For directories, we want to search them for files too. Recursively call this function to do that.
         if path.isdir(full_path):
-            print full_path, "is a directory"
             make_data_list(full_path, paths_list)
             # If it's a file, we only want data files
         elif full_path.endswith(".dat"):
@@ -49,7 +48,7 @@ for file_path in files_list:
     name = name.replace("p", "+")
     #Add MOO on the front
     name = "MOO" + name
-
+# TODO: MAke this work for arbitrary catalogs
     # open the file
     data_file = open(file_path, "r")
 
@@ -89,12 +88,10 @@ for file_path in files_list:
                 image.galaxy_list.append(other_classes.Galaxy(id_num=-999, ra=(data_line[0]), dec=data_line[1],
                                                               mag=data_line[2], color=data_line[3],
                                                               color_error=data_line[4]))
-
     images.append(image)
 
     # close the file
     data_file.close()
-print images
 
 # We now have a list of clusters. We can save these to disk using the cPickle module
 for i in images:

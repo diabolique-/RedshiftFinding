@@ -26,19 +26,20 @@ def plot_color_mag(cluster, predictions=True, distinguish_red_sequence=False, re
     # start by initializing empty lists to append to
     non_rs_mags, rs_mags, non_rs_colors, rs_colors, rs_color_errs, non_rs_color_errs = [], [], [], [], [], []
     for gal in cluster.galaxy_list:
-        if distinguish_red_sequence:  # If the user wants the RS in red, we need separate lists for RS and not
-            if gal.RS_member:
-                rs_mags.append(gal.mag)
-                rs_colors.append(gal.color)
-                rs_color_errs.append(gal.color_error)
+        if gal.color_error < 5.0:  # Don't want huge errors crowding out the plot
+            if distinguish_red_sequence:  # If the user wants the RS in red, we need separate lists for RS and not
+                if gal.RS_member:
+                    rs_mags.append(gal.mag)
+                    rs_colors.append(gal.color)
+                    rs_color_errs.append(gal.color_error)
+                else:
+                    non_rs_mags.append(gal.mag)
+                    non_rs_colors.append(gal.color)
+                    non_rs_color_errs.append(gal.color_error)
             else:
                 non_rs_mags.append(gal.mag)
                 non_rs_colors.append(gal.color)
                 non_rs_color_errs.append(gal.color_error)
-        else:
-            non_rs_mags.append(gal.mag)
-            non_rs_colors.append(gal.color)
-            non_rs_color_errs.append(gal.color_error)
 
     # Set up the plot
     fig = plt.figure(figsize=(9, 6))
@@ -69,7 +70,7 @@ def plot_color_mag(cluster, predictions=True, distinguish_red_sequence=False, re
 
     # Change the scale to match Stanford 14. Each filter set will be different
     if cluster.filters == ["r", "z"]:
-        color_mag_ax.set_xlim([20, 23.5])
+        color_mag_ax.set_xlim([20, 24.5])  # should be [20, 23.5] Changed to see high redshift better
         # color_mag_ax.set_xlim([18, 26])
         color_mag_ax.set_ylim([0, 3.5])
     elif cluster.filters == ["i", "[3.6]"]:
@@ -180,13 +181,16 @@ def plot_z_comparison(clusters, directory, filename):
     :return: none. Plot is saved, though.
     """
     # Make lists of spectroscopic and photometric redshifts, since that's what the plot function takes
-    spec, photo, photo_err, weights = [], [], [], []
+    spec, photo, upper_photo_err, lower_photo_err, weights = [], [], [], [], []
     for c in clusters:
         if c.spec_z:  # Can't plot comparison if the cluster doesn't have a spectroscopic redshift
             spec.append(float(c.spec_z))
             photo.append(float(c.photo_z))
-            photo_err.append(c.photo_z_error)
-            weights.append(1.0 / c.photo_z_error)
+            lower_photo_err.append(c.lower_photo_z_error)
+            upper_photo_err.append(c.upper_photo_z_error)
+            weights.append(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2))  # Average the errors
+            # TODO: Find a better way to do the weighting for the fit. Simple averaging of the errors is WRONG.
+    total_error = [lower_photo_err, upper_photo_err]
 
     # Find the best fit line
     fit = polynomial.polyfit(spec, photo, 1, w=weights)  # returns coefficients of a linear fit
@@ -195,10 +199,11 @@ def plot_z_comparison(clusters, directory, filename):
     fit_line = fit[0] + x * fit[1]
 
     # Plot everything
+    # TODO: make work with lopsided error bars
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(1, 1, 1)
     # Plot points for individual clusters
-    ax.errorbar(spec, photo, yerr=photo_err, c="k", fmt=".", capsize=2, elinewidth=0.5)
+    ax.errorbar(spec, photo, yerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
     # Plot where the best fit line should be
     ax.plot([0.5, 1.5], [0.5, 1.5], "k-", lw=0.5)
     # Plot the best fit line
@@ -273,10 +278,27 @@ def plot_location(cluster):
     # Then plot them
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(1, 1, 1)
-    ax.scatter(non_rs_ras, non_rs_decs, c="k")
-    ax.scatter(rs_ras, rs_decs, c="r")
+    ax.scatter(non_rs_ras, non_rs_decs, c="k", s=3)
+    ax.scatter(rs_ras, rs_decs, c="r", s=6, edgecolors=None, linewidth=0)  # don't want black borders
     ax.set_title(cluster.name)
     ax.set_xlabel("RA")
     ax.set_ylabel("Dec")
+
+    return fig
+
+def plot_chi_data(cluster, chi_redshift_pairs, left_limit, best_z, right_limit):
+    # TODO: document
+    redshifts, chi_squared_values = [], []
+    for pair in chi_redshift_pairs:
+        redshifts.append(pair[0])
+        chi_squared_values.append(pair[1])
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(redshifts, chi_squared_values, "k-")
+    ax.scatter([float(left_limit), float(best_z), float(right_limit)], [1.0, 1.0, 1.0])
+    ax.set_ylim((0.0, 5.0))
+    ax.set_xlabel("Redshift")
+    ax.set_ylabel("Chi squared value")
+    ax.set_title(cluster.name + ", spec z = " + str(cluster.spec_z))
 
     return fig

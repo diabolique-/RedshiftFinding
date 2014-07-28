@@ -15,6 +15,7 @@ class Galaxy(object):
         self.color_residual = 0.0
         self.RS_member = False
 
+
     def __repr__(self):
         return str(self.id)
 

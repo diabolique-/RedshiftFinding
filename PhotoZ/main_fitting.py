@@ -15,15 +15,16 @@ cmd_figs = []
 
 # find the best fit
 for c in clusters:
-    # c.fit_z()  # No plot
-    c.fit_z(cmd_figs)  # Plots
-    # WARNING: If plotting is used for both the beginning, end, and the fitting procedure, it would be wise to reduce
-    # the iterations in the bootstrapping (or change the _find_rs_redshift call in _bootstrap) or you will literally
-    # get >1000 plots, and it will slow the computer to a halt.
+#     if  c.name.startswith("MOOOO1636"):
+    if True:
+        # c.fit_z()  # No plot
+        c.fit_z(cmd_figs)  # Plots
+        # WARNING: If plotting is used for both the beginning, end, and the fitting procedure, it would be wise to reduce
+        # the iterations in the bootstrapping (or change the _find_rs_redshift call in _bootstrap) or you will literally
+        # get >1000 plots, and it will slow the computer to a halt.
 
-    # Print results, to see progress.
-    print c.name + ", spec z = " + str(c.spec_z) + ", photo z = " + str(c.photo_z) + ", photo z error = " + str(
-           round(c.photo_z_error, 3))
+        # Print results, to see progress.
+        print c.name + ", spec z = " + str(c.spec_z) + ", photo z = " + str(c.photo_z)
 
 # Save pdfs
 if cmd_figs:

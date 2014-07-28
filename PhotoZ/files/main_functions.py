@@ -38,6 +38,7 @@ def make_prediction_dictionary(spacing):
         # Make the models
         # For simplicity right now, just use the 0.1 gyr exponential model
         model = ezgal.ezgal("bc03_exp_0.1_z_0.02_chab_evolved_zf_3.0_ugrizch1ch2.model")
+        #model = ezgal.ezgal("m05_ssp_z_0.02_krou_evolved_zf_3.0_ugrizch1ch2.model")
 
         # Set formation redshift and observed redshifts
         zf = 3.0
