@@ -29,4 +29,4 @@ if cmd_figs:
     main_functions.save_as_one_pdf(cmd_figs, "/Users/gbbtz7/GoogleDrive/Research/Plots/Cuts.pdf")
 
 # Plot redshift comparison
-plotting.plot_z_comparison(clusters, "/Users/gbbtz7/GoogleDrive/Research/Plots/", "Spec_z_vs_photo_z")
+# plotting.plot_z_comparison(clusters, "/Users/gbbtz7/GoogleDrive/Research/Plots/", "Spec_z_vs_photo_z")

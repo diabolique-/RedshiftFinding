@@ -58,8 +58,8 @@ class Cluster(object):
             plot_figures.append(plotting.plot_color_mag(self, predictions=False))
 
         # if "G" in self.name:
-        # if True:
-            # plot_figures.append(self._find_location_cut())
+        if True:
+            plot_figures.append(self._find_location_cut())
             # self._find_location_cut()
 
         initial_z = self._find_initial_redshift(plot_bar=True)
@@ -130,7 +130,7 @@ class Cluster(object):
                                                                 color_red_sequence=True))
             plot_figures.append(plotting.plot_location(self))
 
-        # self._write_rs_catalog()
+        self._write_rs_catalog()
 
 
     def _find_initial_redshift(self, plot_bar=True):
@@ -257,6 +257,7 @@ class Cluster(object):
                 gal.color_residual = 999
 
     def _find_location_cut(self):
+        self.all_galaxies = self.galaxy_list
 
         median_ra = np.median([gal.ra for gal in self.galaxy_list])
         median_decs = np.median([gal.dec for gal in self.galaxy_list])
@@ -282,20 +283,24 @@ class Cluster(object):
                 if dist < 1.3/60.0:
                     gals_in_location.append(gal)
                     gal.RS_member = True
-        # fig = plotting.plot_location(self)
+        fig = plotting.plot_location(self)
+
         self.galaxy_list = gals_in_location
-        # return fig
+        return fig
 
     def _write_rs_catalog(self):
         # TODO: Document
         # write red sequence catalog to file
-        rs_catalog = open("/Users/gbbtz7/GoogleDrive/Research/Data/ClusterData/RS_catalogs/" + self.name[:-1] +
-                          "_rs_members.phot.dat", "w")
-        rs_catalog.write("# id    ra            dec          zmag     rmz    rmze\n")
+        rs_catalog = open("/Users/gbbtz7/Desktop/" + self.name[:-1] +
+                          "_rs_members.phot.cat", "w")
+        rs_catalog.write("# id    ra            dec          zmag     rmz    rmze        rs_member\n")
         for gal in self.galaxy_list:
             if gal.RS_member:
                 rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
-                                 "    " + str(gal.color) + "    " + str(gal.color_error) + "\n")
+                                 "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "1" + "\n")
+            else:
+                rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
+                                 "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "0" + "\n")
         rs_catalog.close()
 
 
