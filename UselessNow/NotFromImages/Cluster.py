@@ -294,13 +294,18 @@ class Cluster(object):
         rs_catalog = open("/Users/gbbtz7/Desktop/" + self.name[:-1] +
                           "_rs_members.phot.cat", "w")
         rs_catalog.write("# id    ra            dec          zmag     rmz    rmze        rs_member\n")
-        for gal in self.galaxy_list:
-            if gal.RS_member:
-                rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
-                                 "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "1" + "\n")
+        print len(self.all_galaxies), len(self.galaxy_list)
+        for gal in self.all_galaxies:
+            if gal in self.galaxy_list:
+                if gal.RS_member:
+                    rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
+                                     "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "1" + "\n")
+                else:
+                    rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
+                                     "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "0" + "\n")
             else:
                 rs_catalog.write(str(gal.id) + "    " + str(gal.ra) + "    " + str(gal.dec) + "    " + str(gal.mag) +
-                                 "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "0" + "\n")
+                                     "    " + str(gal.color) + "    " + str(gal.color_error) + "    " + "0" + "\n")
         rs_catalog.close()
 
 

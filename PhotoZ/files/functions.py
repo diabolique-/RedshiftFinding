@@ -1,4 +1,7 @@
+from PhotoZ.files import Cluster
 import os
+import re
+
 
 def find_all_objects(enclosing_directory, extension, files_list):
     """Recursively search the specified directory (and its subdirectories) for files that end in the desired extension.
@@ -39,42 +42,115 @@ def find_all_objects(enclosing_directory, extension, files_list):
 
 # TODO: make a function to do calibrations (Sloan, whatever IRAC needs)
 
-def read_sextractor_catalogs(catalogs_directory):
+
+def read_sextractor_catalogs(catalogs_directory, clusters_list):
     # TODO: document
+    #TODO: SERIOUSLY THINK ABOUT REWRITING THIS AFTER I WRITE THE SEXTRACTOR CODE. IT MAY BE HORRIBLY OUTDATED BY THEN
     for f in os.listdir(catalogs_directory):
         if f.endswith(".cat"):  # Need to only use files that are actually catalogs.
             catalog = open(catalogs_directory + f, "r")
             # Read all lines in, breaking them apart into their columns as we go.
             catalog_lines = [line.split() for line in catalog.readlines()]
             # catalog_lines is now a list of lists of strings. Each interior list is a line.
-            catalog.close()  #We are done with the file, since we read everything in.
+            catalog.close()  # We are done with the file, since we read everything in.
 
             # Determine what band the image is in, based on its filename.
             band = f.split(".")[-2]  # if the file is in the format name.band.cat, the second to last string between
             # the periods is the band.
+            # Find which cluster this data belongs to
+            this_cluster = _determine_which_cluster(clusters_list, f)
 
+            # Split the catalog info into header and data sections
+            header_lines = [line for line in catalog_lines if line[0] == "#"]
+            data_lines = [line for line in catalog_lines if not line[0] == "#"]
+
+            # Set placeholders to make my editor happy
+            ra_index, dec_index, mag_index, mag_err_index, flags_index, class_star_index = 999, 999, 999, 999, 999, 999
             # Now use the header lines to determine what is in each column of the catalog
-            for line in catalog_lines:
-                if line[0] == "#":  # The commented lines at the top are the ones we want.
-                    if line[2] == "ALPHA_J2000":  # RA
-                        ra_index = int(line[1]) - 1
-                        # We have to subtract one since Python indexing starts at 0, while SExtractor starts at 1
-                    elif line[2] == "DELTA_J2000": # dec
-                        dec_index = int(line[1]) - 1
-                    elif line[2].startswith("MAG_"): # magnitude
-                        # Used .startswith, since there are multiple magnitude options in SExtractor. the _ is to
-                        # distinguish this line from MAGERR
-                        mag_index = int(line[1]) - 1
-                    elif line[2].startswith("MAGERR"): # magnitude error
-                        mag_err_index = int(line[1]) - 1
-                    elif line[2] == "FLAGS":
-                        flags_index = int(line[1]) - 1
-                    elif line[2] == "CLASS_STAR":  # How star-like the source is
-                        class_star_index = int(line[1]) - 1
-                    
+            for line in header_lines:
+                if line[2] == "ALPHA_J2000":  # RA
+                    ra_index = int(line[1]) - 1
+                    # We have to subtract one since Python indexing starts at 0, while SExtractor starts at 1
+                elif line[2] == "DELTA_J2000":  # dec
+                    dec_index = int(line[1]) - 1
+                elif line[2].startswith("MAG_"):  # magnitude
+                    # Used .startswith, since there are multiple magnitude options in SExtractor. the _ is to
+                    # distinguish this line from MAGERR
+                    mag_index = int(line[1]) - 1
+                elif line[2].startswith("MAGERR"):  # magnitude error
+                    mag_err_index = int(line[1]) - 1
+                elif line[2] == "FLAGS":
+                    flags_index = int(line[1]) - 1
+                elif line[2] == "CLASS_STAR":  # How star-like the source is
+                    class_star_index = int(line[1]) - 1
 
+            # now that we know what the columns are, we can put that data how we want it
+            # for line in catalog_lines:
+            #     if flags_index != 999: # Can't check anything relating to it if it didn't assign earlier.
+            #         if line[flags_index] < 4:  # Flag greater than 4 indicates bad data
+            #             # TODO: do I really need the flag, or wil the coverage map take care of it? It might, but having
+            #             # an extra check for bad data still wouldn't hurt. Think about this
+            #             pass
 
             # TODO: store the data in the source objects if they already exist, otherwise make a new one. Need to
-            # match them somehow to ones
+            # match them somehow to ones that already exist
 
-            pass
+
+def _determine_which_cluster(clusters_list, catalog_name):
+    # TODO: document once I can verify that this works.
+    name = _make_cluster_name(catalog_name)
+
+    in_list = False
+    for c in clusters_list:
+        if c.name == name:
+            return c
+
+    # Since we got this far, we know it's not in the list. We now initialize a new cluster object with empty
+    clusters_list.append(Cluster.Cluster(name, []))
+    return clusters_list[-1]
+    #TODO: Verify that this works! I'm pretty sure it will, but not 100%.
+    # May need to do this instead.
+    # # Now can check again.
+    # for c in clusters_list:
+    #     if c.name == name:
+    #         return c
+
+
+def _make_cluster_name(filename):
+    """Find the name of a cluster, based on its filename.
+
+    Uses regular expressions to parse filenames, so I included lots of comments to try and explain what I'm doing here.
+
+    :param filename: Filename that will be parsed into a cluster name.
+    :type filename: str
+    :return: name of the cluster
+    :rtype: str
+    """
+    name = filename.split(".")[0]
+
+    # First look for something of the form m####p####
+    simplest = re.compile("m[0-9]{4}p|m[0-9]{4}")
+    # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
+    # This is the format my code outputs SExtractor catalogs with. TODO: is it?
+    if simplest.match(name):
+        # First replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
+        name = name.replace("p", "+")
+        name = name.replace("m", "-")
+        # Now have the beginning be taken off, and replaced with MOO
+        name = "MOO" + name[1:]
+    # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does
+    #  not match.
+    return name
+
+def check_for_slash(path):
+    """Check the given directory for a slash at the end. If it doesn't have one, add it.
+
+    :param path: Path to be checked for a slash.
+    :type path: str
+    :return: corrected path
+    :rtype: str
+    """
+    if path.endswith("/"):
+        return path
+    else:
+        return path + "/"
