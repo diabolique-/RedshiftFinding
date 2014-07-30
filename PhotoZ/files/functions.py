@@ -2,12 +2,14 @@ from PhotoZ.files import Cluster
 import os
 import re
 
+# TODO: make read catalogs function, should work for both SExtractor and SDSS
 
-def find_all_objects(enclosing_directory, extension, files_list):
+def find_all_objects(enclosing_directory, extensions, files_list):
     """Recursively search the specified directory (and its subdirectories) for files that end in the desired extension.
 
     :param enclosing_directory: highest level directory containing the files
-    :param extension: extension that the files returned will end with
+    :param extension: List of possible extensions to be found.
+    :type extensions: list of str
     :param files_list: list that the desired files will be appended to.
     :return: files_list, with the paths of all the files appended to it
     """
@@ -21,11 +23,12 @@ def find_all_objects(enclosing_directory, extension, files_list):
         entire_path = enclosing_directory + f
         if os.path.isdir(entire_path):
             # If it is a diretory, search through that directory with this function.
-            find_all_objects(entire_path, extension, files_list)
+            find_all_objects(entire_path, extensions, files_list)
             # We don't need to record the output of the function, since the list we pass in will be modified in place.
         else:
-            if entire_path.endswith(extension):
-                files_list.append(entire_path)
+            for ext in extensions:
+                if entire_path.endswith(ext):
+                    files_list.append(entire_path)
 
     return files_list
     # We technically don't need to return files_list, since changes in it will be reflected in the main program,
@@ -131,7 +134,7 @@ def _make_cluster_name(filename):
     # First look for something of the form m####p####
     simplest = re.compile("m[0-9]{4}p|m[0-9]{4}")
     # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
-    # This is the format my code outputs SExtractor catalogs with. TODO: is it?
+    # This is the format my code outputs SExtractor catalogs with. TODO: is it? Should probably use IRAC catalog format
     if simplest.match(name):
         # First replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
         name = name.replace("p", "+")
@@ -139,7 +142,7 @@ def _make_cluster_name(filename):
         # Now have the beginning be taken off, and replaced with MOO
         name = "MOO" + name[1:]
     # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does
-    #  not match.
+    #  not match. IF it doesn't match, tell the user that.
     return name
 
 def check_for_slash(path):
@@ -154,3 +157,15 @@ def check_for_slash(path):
         return path
     else:
         return path + "/"
+
+def get_band_from_filename(filename):
+    """Finds the band of an image or catalog based on the filename.
+
+    Assumes filenames are of the form object_name_band.extension
+
+    :param filename: string with the filename
+    :return: string containing the band
+    """
+    file_no_extension = filename.split(".")[0]  # first thing before a .
+    band = file_no_extension.split("_")[-1]  # the band will be the last thing in the name itself
+    return band

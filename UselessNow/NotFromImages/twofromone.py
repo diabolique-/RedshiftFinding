@@ -9,7 +9,7 @@ catalog_file = open("/Users/gbbtz7/GoogleDrive/Research/Data/ClusterData/m1636p1
 catalog_file.write("# id         ra          dec      zmag     rmz     rmze\n#")
 
 for r_line, z_line in zip(r_lines, z_lines):
-    if int(r_line[-2]) < 4 and int(z_line[-2]) < 4:
+    # if int(r_line[-2]) < 4 and int(z_line[-2]) < 4:
         id_num = r_line[0]
         ra = z_line[1]
         dec = z_line[2]
