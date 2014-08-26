@@ -101,7 +101,7 @@ def read_sextractor_catalogs(catalogs_directory, clusters_list):
 
 def _determine_which_cluster(clusters_list, catalog_name):
     # TODO: document once I can verify that this works.
-    name = _make_cluster_name(catalog_name)
+    name = make_cluster_name(catalog_name)
 
     in_list = False
     for c in clusters_list:
@@ -119,7 +119,7 @@ def _determine_which_cluster(clusters_list, catalog_name):
     #         return c
 
 
-def _make_cluster_name(filename):
+def make_cluster_name(filename):
     """Find the name of a cluster, based on its filename.
 
     Uses regular expressions to parse filenames, so I included lots of comments to try and explain what I'm doing here.
@@ -134,15 +134,27 @@ def _make_cluster_name(filename):
     # First look for something of the form m####p####
     simplest = re.compile("m[0-9]{4}p|m[0-9]{4}")
     # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
+
+    # Look for format of Gemini images
+    gemini_image = re.compile("MOO[0-9]{4}\+|\-[0-9]{4}_r|z\.fits")
+    # MOO, then 4 numeric characters, then + or -, then 4 numeric characters, then _, then r or z, then .fits
     # This is the format my code outputs SExtractor catalogs with. TODO: is it? Should probably use IRAC catalog format
+
     if simplest.match(name):
         # First replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
         name = name.replace("p", "+")
         name = name.replace("m", "-")
         # Now have the beginning be taken off, and replaced with MOO
         name = "MOO" + name[1:]
+        return name
+
+    elif gemini_image.match(name):
+        return name  # name is good as is
+
+
     # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does
     #  not match. IF it doesn't match, tell the user that.
+    # TODO: add cases for Gemini images, as well as IRAC images.
     return name
 
 def check_for_slash(path):

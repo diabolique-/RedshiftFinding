@@ -21,3 +21,6 @@ class Source(object):
 
     def __repr__(self):  # Shows how sources are printed.
         return str(str(self.id) + ", ra=" + str(self.ra) + ", dec=" + str(self.dec))
+
+    #TODO: write change mags function. I can't call init each time, so I need one basically like it to add the
+    # magnitude information.

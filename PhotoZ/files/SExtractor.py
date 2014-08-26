@@ -2,6 +2,9 @@ import os
 import subprocess
 from PhotoZ.files import functions
 
+# Import variables that specify file locations
+import global_paths
+
 
 def make_catalogs(image_paths):
     # TODO: document
@@ -19,8 +22,25 @@ def make_catalogs(image_paths):
             for path in cluster:
                 print path
         else:  # did find r and z images
-            # Now we can do the SExtractor work on the r and z images
-            pass
+            # Now we can do the SExtractor work oyn the r and z images
+            for measurement_image in [z_image, r_image]:
+                zero_point = 30.00
+                user_approved = False
+                while not user_approved:
+
+                    # Always use z as the detection image # TODO: why?
+                    #TODO: need a way to read in what the zero point is, then adjust it
+                    run_sextractor(z_image, measurement_image, str(zero_point))
+
+                    # Do Sloan Calibrations
+
+
+                    user_approved = True
+                    # user_approved = raw_input("Does this look good? (y/n) ")
+                    # if user_approved == "Y" or "y":
+                    #     user_approved = True
+                    # else:
+                    #     user_approved = False
 
 
 
@@ -31,8 +51,32 @@ def make_catalogs(image_paths):
 
 
 # TODO: do I need to make separate r-z function, or can I make a general SExtractor function?
-def run_sextractor(detection_image, measurement_image):
-    pass
+def run_sextractor(detection_image, measurement_image, zeropoint):
+    # global sextractor_params_directory, r_config_file, z_config_file  # Defined in main. I use global so I don't have to pass the
+    # location around.
+    os.chdir(global_paths.sextractor_params_directory)
+
+    # TODO: Try to call "which sex" to determine where SExtractor is.
+    sex = "/usr/local/scisoft///bin/sex"
+    # Determine which .sex file to usey
+    if functions.get_band_from_filename(measurement_image) == "r":
+        config_file = global_paths.r_config_file
+    elif functions.get_band_from_filename(measurement_image) == "z":
+        config_file = global_paths.z_config_file
+    else:
+        print "The SExtractor function for r and z bands was passed an image that isn't r or z. Something is wrong"
+        return
+
+    # Determine the name of the catalog
+    catalog_name = functions.make_cluster_name(measurement_image.split("/")[-1]) + ".cat"
+    catalog_path = global_paths.catalogs_directory + catalog_name
+
+    # TODO: urgent: make a function to parse the filename into a catalog name.
+
+    # Call SExtractor
+    subprocess.call([sex, detection_image, measurement_image, "-c", config_file, "-CATALOG_NAME", catalog_path,
+                     "-MAG_ZEROPOINT", zeropoint])
+
 
 
 
@@ -66,6 +110,7 @@ def _group_images(image_paths):
 
 
 def _get_numbers_from_filename(filename):
+    # TODO: should this be here, or in the functions file?
     """Parse the filename, and return the 8 digits that correspond to the coordinates of the image in the file.
 
     :param filename: filename to be parsed. Do not pass the full path, just the filename.
