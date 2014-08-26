@@ -28,9 +28,10 @@ def make_catalogs(image_paths):
                 user_approved = False
                 while not user_approved:
 
+
                     # Always use z as the detection image # TODO: why?
                     #TODO: need a way to read in what the zero point is, then adjust it
-                    run_sextractor(z_image, measurement_image, str(zero_point))
+                    _run_sextractor(z_image, measurement_image, str(zero_point))
 
                     # Do Sloan Calibrations
 
@@ -45,15 +46,24 @@ def make_catalogs(image_paths):
 
 
 
+                    # Always use z as the detection image # TODO: why?
+                    #TODO: need a way to read in what the zero point is, then adjust it
+                    _run_sextractor(z_image, measurement_image, str(zero_point))
 
+                    # Do Sloan Calibrations
 
-
+                    user_approved = True
+                    # user_approved = raw_input("Does this look good? (y/n) ")
+                    # if user_approved == "Y" or "y":
+                    #     user_approved = True
+                    # else:
+                    #     user_approved = False
 
 
 # TODO: do I need to make separate r-z function, or can I make a general SExtractor function?
-def run_sextractor(detection_image, measurement_image, zeropoint):
-    # global sextractor_params_directory, r_config_file, z_config_file  # Defined in main. I use global so I don't have to pass the
-    # location around.
+
+def _run_sextractor(detection_image, measurement_image, zeropoint):
+    # TODO: document
     os.chdir(global_paths.sextractor_params_directory)
 
     # TODO: Try to call "which sex" to determine where SExtractor is.
@@ -65,6 +75,18 @@ def run_sextractor(detection_image, measurement_image, zeropoint):
         config_file = global_paths.z_config_file
     else:
         print "The SExtractor function for r and z bands was passed an image that isn't r or z. Something is wrong"
+
+
+    # Make sure we have r or z or both. Both images have to be r or z bands.
+    if not ((functions.get_band_from_filename(detection_image) == "r" or
+             functions.get_band_from_filename(detection_image) == "z") and
+            (functions.get_band_from_filename(measurement_image) == "r" or
+             functions.get_band_from_filename(measurement_image) == "z")):
+        print "\n\n\n############################################################################################\n" \
+              "The SExtractor function for r and z bands was passed an image that isn't r or z. \nSomething is " \
+              "wrong.\n" \
+              "############################################################################################\n\n\n"
+
         return
 
     # Determine the name of the catalog
@@ -74,9 +96,12 @@ def run_sextractor(detection_image, measurement_image, zeropoint):
     # TODO: urgent: make a function to parse the filename into a catalog name.
 
     # Call SExtractor
+    temp = subprocess.PIPE  # I don't want SExtractor's output to be seen, so create this to store it all.
+    # subprocess.call puts things in command line (like terminal). Things have to be a list. It will put spaces
+    # in between each item in the list when it actually does the command.
     subprocess.call([sex, detection_image, measurement_image, "-c", config_file, "-CATALOG_NAME", catalog_path,
-                     "-MAG_ZEROPOINT", zeropoint])
-
+                     "-MAG_ZEROPOINT", zeropoint], stdout=temp)  # stdout is the pipe we just made, meaning that
+                     # nothing is printed.
 
 
 
@@ -139,11 +164,3 @@ def _find_r_and_z_images(images):
             print "An image was passed in with a band I can't do anything with. Here is the path: " + image_path
         # TODO: put [3.6] and [4.5] in this when if I ever run things from IRAC images.
     return r_image, z_image
-
-
-########################################################################################################################
-# os.chdir(sextractor_params_directory)
-# # TODO: use "which sex" to find the place SExtractor is. I use where mine is, but that may change.
-# # TODO: after using "which sex", make it notice if SExtractor is not on the machine.
-# subprocess.call(["/usr/local/scisoft///bin/sex", "/Users/gbbtz7/Astro/Data/gem/2013B/MOO0024+3303/MOO0024+3303_r.fits", "-c", "gmos.r.sex"])
-########################################################################################################################

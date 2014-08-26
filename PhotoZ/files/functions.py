@@ -4,11 +4,12 @@ import re
 
 # TODO: make read catalogs function, should work for both SExtractor and SDSS
 
+
 def find_all_objects(enclosing_directory, extensions, files_list):
     """Recursively search the specified directory (and its subdirectories) for files that end in the desired extension.
 
     :param enclosing_directory: highest level directory containing the files
-    :param extension: List of possible extensions to be found.
+    :param extensions: List of possible extensions to be found.
     :type extensions: list of str
     :param files_list: list that the desired files will be appended to.
     :return: files_list, with the paths of all the files appended to it
@@ -35,8 +36,7 @@ def find_all_objects(enclosing_directory, extensions, files_list):
     # but often the user will just pass in2 an empty list without assigning it first. In this case, we need to return
     # something.
 
-# def SExtractor(image_pat
-# TODO: write this function
+
 # Make sure that it does SExtractor on the images, with the correct parameters (including saving them to the right
 # place), calibration, and correct naming conventions for the file (has to contain the band in the spot that
 # read_sextractor_catalogs will look. I want each image to have its own SExtrator .sex file, for easier adjustments
@@ -46,64 +46,10 @@ def find_all_objects(enclosing_directory, extensions, files_list):
 # TODO: make a function to do calibrations (Sloan, whatever IRAC needs)
 
 
-def read_sextractor_catalogs(catalogs_directory, clusters_list):
-    # TODO: document
-    #TODO: SERIOUSLY THINK ABOUT REWRITING THIS AFTER I WRITE THE SEXTRACTOR CODE. IT MAY BE HORRIBLY OUTDATED BY THEN
-    for f in os.listdir(catalogs_directory):
-        if f.endswith(".cat"):  # Need to only use files that are actually catalogs.
-            catalog = open(catalogs_directory + f, "r")
-            # Read all lines in, breaking them apart into their columns as we go.
-            catalog_lines = [line.split() for line in catalog.readlines()]
-            # catalog_lines is now a list of lists of strings. Each interior list is a line.
-            catalog.close()  # We are done with the file, since we read everything in.
-
-            # Determine what band the image is in, based on its filename.
-            band = f.split(".")[-2]  # if the file is in the format name.band.cat, the second to last string between
-            # the periods is the band.
-            # Find which cluster this data belongs to
-            this_cluster = _determine_which_cluster(clusters_list, f)
-
-            # Split the catalog info into header and data sections
-            header_lines = [line for line in catalog_lines if line[0] == "#"]
-            data_lines = [line for line in catalog_lines if not line[0] == "#"]
-
-            # Set placeholders to make my editor happy
-            ra_index, dec_index, mag_index, mag_err_index, flags_index, class_star_index = 999, 999, 999, 999, 999, 999
-            # Now use the header lines to determine what is in each column of the catalog
-            for line in header_lines:
-                if line[2] == "ALPHA_J2000":  # RA
-                    ra_index = int(line[1]) - 1
-                    # We have to subtract one since Python indexing starts at 0, while SExtractor starts at 1
-                elif line[2] == "DELTA_J2000":  # dec
-                    dec_index = int(line[1]) - 1
-                elif line[2].startswith("MAG_"):  # magnitude
-                    # Used .startswith, since there are multiple magnitude options in SExtractor. the _ is to
-                    # distinguish this line from MAGERR
-                    mag_index = int(line[1]) - 1
-                elif line[2].startswith("MAGERR"):  # magnitude error
-                    mag_err_index = int(line[1]) - 1
-                elif line[2] == "FLAGS":
-                    flags_index = int(line[1]) - 1
-                elif line[2] == "CLASS_STAR":  # How star-like the source is
-                    class_star_index = int(line[1]) - 1
-
-            # now that we know what the columns are, we can put that data how we want it
-            # for line in catalog_lines:
-            #     if flags_index != 999: # Can't check anything relating to it if it didn't assign earlier.
-            #         if line[flags_index] < 4:  # Flag greater than 4 indicates bad data
-            #             # TODO: do I really need the flag, or wil the coverage map take care of it? It might, but having
-            #             # an extra check for bad data still wouldn't hurt. Think about this
-            #             pass
-
-            # TODO: store the data in the source objects if they already exist, otherwise make a new one. Need to
-            # match them somehow to ones that already exist
-
-
 def _determine_which_cluster(clusters_list, catalog_name):
     # TODO: document once I can verify that this works.
     name = make_cluster_name(catalog_name)
 
-    in_list = False
     for c in clusters_list:
         if c.name == name:
             return c
@@ -151,11 +97,11 @@ def make_cluster_name(filename):
     elif gemini_image.match(name):
         return name  # name is good as is
 
-
     # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does
     #  not match. IF it doesn't match, tell the user that.
     # TODO: add cases for Gemini images, as well as IRAC images.
     return name
+
 
 def check_for_slash(path):
     """Check the given directory for a slash at the end. If it doesn't have one, add it.
@@ -170,10 +116,11 @@ def check_for_slash(path):
     else:
         return path + "/"
 
+
 def get_band_from_filename(filename):
     """Finds the band of an image or catalog based on the filename.
 
-    Assumes filenames are of the form object_name_band.extension
+    Assumes file names are of the form object_name_band.extension
 
     :param filename: string with the filename
     :return: string containing the band

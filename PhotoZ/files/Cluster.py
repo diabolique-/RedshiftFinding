@@ -4,7 +4,7 @@ class Cluster(object):
     """
     # tODO: document
 
-    def __init__(self, name, sources_list, spec_z = None):
+    def __init__(self, name, sources_list, spec_z=None):
         # TODO: document
         # Assign the cluster's name, and the spectroscopic redshift, if it exists.
         self.name = name
