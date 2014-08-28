@@ -2,6 +2,7 @@ from PhotoZ.files import SExtractor
 from PhotoZ.files import functions
 from PhotoZ.files import global_paths
 
+
 # TODO: FIGURE OUT WHAT A MAIN IS IN PYTHON, AND IMPLEMENT THAT TOO. I WANT THIS TO BE A MODULE.
 
 # Tell the program where to start

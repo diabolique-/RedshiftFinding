@@ -9,18 +9,22 @@ from PhotoZ.files import functions
 images_directory = functions.check_for_slash("/Users/gbbtz7/Astro/RS_finding/Data/Images/Gemini/Corrected/")
 
 # Where SExtractor will be run from. This directory should hold the .sex and .param files that SExtractor uses
-sextractor_params_directory = functions.check_for_slash("/Users/gbbtz7/Astro/SExtractor/")
+sextractor_params_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/SExtractor_files/")
 # Config files sextractor will use for different bands
 
 r_config_file = sextractor_params_directory + "r.sex"
 z_config_file = sextractor_params_directory + "z.sex"
 
-# TODO: THE PROBLEM IS WITH THE .PARAM FILES, NOT THE .SEX FILES. NOT SURE WHAT, THOUGH
-
 
 # Where the SExtractor catalogs will be. The code will move the created files here, to reduce clutter in the
 # SExtractor directory.
-catalogs_directory = functions.check_for_slash("/Users/gbbtz7/Astro/RS_finding/Data/Catalogs/Gemini/")
+catalogs_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/Gemini/")
+
+# Location for calibration catalogs to be saved to.
+calibration_catalogs_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/SDSS_catalogs")
+
+# Place to store Python saved objects. Clusters will be pickled to this location.
+pickle_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/PythonSavedClusters")
 
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.
