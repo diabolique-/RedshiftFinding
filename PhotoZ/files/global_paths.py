@@ -8,10 +8,9 @@ from PhotoZ.files import functions
 # I call the function to ensure there is a slash at the end of the directory.
 images_directory = functions.check_for_slash("/Users/gbbtz7/Astro/RS_finding/Data/Images/Gemini/Corrected/")
 
-# Where SExtractor will be run from. This directory should hold the .sex and .param files that SExtractor uses
+# SExtractor will run from here. This directory should hold the .sex and .param files that SExtractor uses
 sextractor_params_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/SExtractor_files/")
 # Config files sextractor will use for different bands
-
 r_config_file = sextractor_params_directory + "r.sex"
 z_config_file = sextractor_params_directory + "z.sex"
 

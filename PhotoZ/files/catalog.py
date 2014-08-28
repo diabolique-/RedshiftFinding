@@ -100,6 +100,7 @@ def _find_data_type(value):
 
 def read_catalog(filepath, desired_columns, label_type=None, label_row=None, data_start=None, separator=" ",
                  filters=None):
+    # TODO: redo documentation
     """
 
     :param filepath:
@@ -172,7 +173,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
         # find the columns the user wants
         column_idx_list = [_find_column_index_single(all_lines[label_row], all_lines[data_start], element)
                            for element in desired_columns]
-    if label_type == "m":  # multiple label lines
+    elif label_type == "m":  # multiple label lines
         if data_start is None:
             raise EndProgramError("Error in read_catalog function. When multiple label lines are used, the start"
                                   "of data needs to be specified. That did not happen.")
@@ -186,9 +187,6 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
                 line[0] == line[0].replace("#", " ")
         column_idx_list = [_find_column_index_multiple(label_lines, all_lines[data_start], element) for element in
                            desired_columns]
-
-
-
 
     else:
         raise EndProgramError("Error in read_catalog function. Type of labels was specified incorrectly. "

@@ -1,6 +1,7 @@
 from PhotoZ.files import Cluster
 import os
 import re
+import math
 
 # TODO: make read catalogs function, should work for both SExtractor and SDSS
 
@@ -128,3 +129,11 @@ def get_band_from_filename(filename):
     file_no_extension = filename.split(".")[0]  # first thing before a .
     band = file_no_extension.split("_")[-1]  # the band will be the last thing in the name itself
     return band
+
+def distance(x1, x2, y1, y2):
+    """Uses the distance formula to calculate the distance between 2 objects
+    dist = square root of the sum of the squared differences
+
+    x and y are coordinates, so x1 and x2 are two values along one coordinate, and y1 and y2 are along the other.
+    """
+    return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)

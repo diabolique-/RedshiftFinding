@@ -1,26 +1,25 @@
 class Source(object):
     """Class representing a source detected by SExtractor. Holds data in all bands that exist for the object."""
 
-    def __init__(self, id_num, ra, dec, r_mag=None, z_mag=None, ch1_mag=None, ch2_mag=None):
+    def __init__(self, ra, dec, bands, mags, mag_errors=None):
         """Create a galaxy object using the information passed in."""
-        self.id = int(id_num)  # TODO: do I really need ID? What purpose does it serve?
         self.ra = float(ra)
         self.dec = float(dec)
-        self.r_mag = r_mag
-        self.z_mag = z_mag
-        self.ch1_mag = ch1_mag
-        self.ch2_mag = ch2_mag
+        self.mags = dict()
+        if len(bands) == len(mags):
+            for i in range(len(bands)):
+                self.mags[bands[i]] = mags[i]
+                    # Only used in calibration, where I know the bands are the same, and I don't want to mess with
+                    # finding the band, and converting that to a variable call
+                # TODO: should just use a dictionary for mags.
+                # TODO: add IR bands
 
-        # Can calculate colors from this data
-        if self.r_mag and self.z_mag:
-            self.rz_color = self.r_mag - self.z_mag
-        # TODO: add other color combinations
+        # TODO: add errors
 
         # Assume it is not a RS member for now, this will change as the code runs.
         self.RS_member = False
 
     def __repr__(self):  # Shows how sources are printed.
-        return str(str(self.id) + ", ra=" + str(self.ra) + ", dec=" + str(self.dec))
+        return str("ra=" + str(self.ra) + ", dec=" + str(self.dec))
 
-    #TODO: write change mags function. I can't call init each time, so I need one basically like it to add the
-    # magnitude information.
+# TODO: add calculations of color
