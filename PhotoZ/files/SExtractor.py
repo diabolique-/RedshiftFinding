@@ -52,9 +52,9 @@ def make_catalogs(image_paths):
                 # TODO: somewhere down the road, do aperture corrections. These are neccesary for calibrating
                 #  optical to IR mags.
 
-                calibration_success = sdss_calibration.sdss_calibration(catalog_path)
+                zero_point_correction = sdss_calibration.sdss_calibration(catalog_path)
                 # If it couldn't work (maybe there weren't any stars), exit.
-                if calibration_success is False:
+                if zero_point_correction is False:
                     # TODO: ask Brodwin how to handle images that can't be calibrated to SDSS.
 
                     # remove the SExtractor catalog, since it couldn't be calibrated properly
@@ -66,7 +66,7 @@ def make_catalogs(image_paths):
 
                 # TODO: can also adjust FWHM from SExtractor catalog information
 
-                # _run_sextractor(z_image, measurement_image, config_file,str(zero_point), catalog_path)
+                _run_sextractor(z_image, measurement_image, config_file,str(zero_point), catalog_path)
 
 
             else:  # no break in for loop (ie, calibration_success worked)

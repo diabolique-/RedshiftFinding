@@ -104,11 +104,7 @@ def sdss_calibration(sex_catalog_path):
         else:
             user_approved = False
 
-    # Don't need to fit a line. Since the x values don't matter (since the slope is zero), I can just do a weighted
-    # average thing (based on errorbars) of the mag differences to find the best fit.
-
-
-    return True  # It worked properly
+    return best_intercept
 
 
 
