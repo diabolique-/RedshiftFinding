@@ -137,3 +137,4 @@ def distance(x1, x2, y1, y2):
     x and y are coordinates, so x1 and x2 are two values along one coordinate, and y1 and y2 are along the other.
     """
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+

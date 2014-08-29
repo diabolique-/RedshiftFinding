@@ -44,42 +44,34 @@ def make_catalogs(image_paths):
 
                 # Initialize other variables for the loop
                 user_approved = False
-                residual_mags = 999
 
                 # Run SExtractor once before the loop, to get a baseline
                 # Always use z as the detection image, since it is the reddest band in optical
                 _run_sextractor(z_image, measurement_image, config_file, str(zero_point), catalog_path)
-                while not user_approved:
-                    while residual_mags > 0.001:
 
-                        # Do aperture corrections
+                # TODO: somewhere down the road, do aperture corrections. These are neccesary for calibrating
+                #  optical to IR mags.
 
-                        # Do Sloan Calibrations
-                        calibration_success = sdss_calibration.sdss_calibration(catalog_path)
-                        # If it couldn't work (maybe there weren't any stars), exit.
-                        if calibration_success == False:
-                            # remove the SExtractor catalog, since it couldn't be calibrated properly
-                            os.remove(catalog_path)
-                            # set user approved, so it can exit the outer loop
-                            user_approved = True
-                            break
+                calibration_success = sdss_calibration.sdss_calibration(catalog_path)
+                # If it couldn't work (maybe there weren't any stars), exit.
+                if calibration_success is False:
+                    # TODO: ask Brodwin how to handle images that can't be calibrated to SDSS.
 
-                        # Always use z as the detection image, since it is the reddest band in optical
+                    # remove the SExtractor catalog, since it couldn't be calibrated properly
+                    os.remove(catalog_path)
 
-                        # TODO: can also adjust FWHM from SExtractor catalog information
+                    break  # skips else block
 
-                        # _run_sextractor(z_image, measurement_image, config_file,str(zero_point), catalog_path)
+                # Always use z as the detection image, since it is the reddest band in optical
 
-                        # Just for testing purposed now
-                        residual_mags = 0.0
+                # TODO: can also adjust FWHM from SExtractor catalog information
 
-                    else:  # no break in while loop (ie, calibration_success worked)
-                        user_approved = True
-                        # user_approved = raw_input("Does this look good? (y/n) ")
-                        # if user_approved == "Y" or "y":
-                        #     user_approved = True
-                        # else:
-                        #     user_approved = False
+                # _run_sextractor(z_image, measurement_image, config_file,str(zero_point), catalog_path)
+
+
+            else:  # no break in for loop (ie, calibration_success worked)
+
+                pass
 
 
 # TODO: do I need to make separate r-z function, or can I make a general SExtractor function?
