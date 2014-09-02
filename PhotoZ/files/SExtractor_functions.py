@@ -1,8 +1,8 @@
 def find_zeropoint(file_path):
-    """
+    """Finds the default zeropoint, as shown in the .sex config file.
 
-    :param file_path:
-    :return:
+    :param file_path: place where the .sex file is.
+    :return: zeropoint specified in the file.
     """
     sex_file = open(file_path, "r")
     lines = sex_file.readlines()

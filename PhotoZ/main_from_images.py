@@ -25,4 +25,4 @@ if START_WITH == 0:
     # Find all images in the desired directory. Will have a list of file paths.
     image_list = functions.find_all_objects(global_paths.images_directory, [".fits"], [])
 
-    SExtractor.make_catalogs(image_list)
+    SExtractor.sextractor_main(image_list)

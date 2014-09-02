@@ -1,17 +1,10 @@
 import operator
+import other_classes
 
 # TODO: make work with SExtractor catalogs
 
 
-class EndProgramError(Exception):
-    """Exception class that ends the program when raised. Prints an error message,
-    as well as optionally printing a value that caused the exception.
-    """
-    def __init__(self, message, offending_value=None):
-        print message
-        if offending_value:
-            print "Here is the offending value: " + str(offending_value)
-        raise Exception  # Exits the program
+
 
 
 def _find_column_index_single(label_line, data_line, column_descriptor):
@@ -21,17 +14,20 @@ def _find_column_index_single(label_line, data_line, column_descriptor):
         try:  # Want to catch errors if the desired element isn't a label
             return label_line.index(column_descriptor)
         except ValueError:  # Thing isn't in the list
-            raise EndProgramError("Error in read_catalog function. One of the column labels was not found "
+            raise other_classes.EndProgramError("Error in read_catalog function. One of the column labels was not found "
                                   "among the labels of the file.", column_descriptor)
     elif type(column_descriptor) is int:  # If it's an integer, it will be a column number
         if len(data_line) * -1 <= column_descriptor < len(data_line):  # Want the column to actually be in the list
             # Negative indices are allowed
             return column_descriptor
         else:
-            raise EndProgramError("Error in read_catalog function. One of the column numbers was not a valid index "
+            raise other_classes.EndProgramError("Error in read_catalog function. One of the column numbers was not a "
+                                             "valid "
+                                       "index "
                                   "for the given file.", column_descriptor)
     else:
-        raise EndProgramError("Error in read_catalog function. One of the desired columns was passed in as neither "
+        raise other_classes.EndProgramError("Error in read_catalog function. One of the desired columns was passed in as "
+                                   "neither "
                               "a string or an integer.", column_descriptor)
 
 def _find_column_index_multiple(label_lines, data_line, column_descriptor):
@@ -41,17 +37,17 @@ def _find_column_index_multiple(label_lines, data_line, column_descriptor):
             if column_descriptor in label_lines[i]:  # If the label is in the line
                 return i
         # If the code made it this far, it didn't find the label.
-        raise EndProgramError("Error in read_catalog function. One of the column labels was not found among the "
+        raise other_classes.EndProgramError("Error in read_catalog function. One of the column labels was not found among the "
                               "labels of the file.", column_descriptor)
     elif type(column_descriptor) is int:  # If it's an int, it is a column number.
         if len(data_line) * -1 <= column_descriptor < len(data_line):  # Want the column to actually be in the list
             # Negative indices are allowed
             return column_descriptor
         else:
-            raise EndProgramError("Error in read_catalog function. One of the column numbers was not a valid index "
+            raise other_classes.EndProgramError("Error in read_catalog function. One of the column numbers was not a valid index "
                                   "for the given file.", column_descriptor)
     else:
-        raise EndProgramError("Error in read_catalog function. One of the desired columns was passed in as neither "
+        raise other_classes.EndProgramError("Error in read_catalog function. One of the desired columns was passed in as neither "
                               "a string or an integer.", column_descriptor)
 
 
@@ -76,7 +72,7 @@ def _parse_filter_string(filter_string):
     elif filter_components[1] == ">=":
         filter_components[1] = operator.ge
     else:
-        raise EndProgramError("Error in read_catalog function. Filter operator is not known.", filter_components[1])
+        raise other_classes.EndProgramError("Error in read_catalog function. Filter operator is not known.", filter_components[1])
     return filter_components
 
 
@@ -135,7 +131,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
     try:
         f = open(filepath)
     except IOError:
-        raise EndProgramError("Error in read_catalog function. The file to be opened was not found.")
+        raise other_classes.EndProgramError("Error in read_catalog function. The file to be opened was not found.")
 
 
 
@@ -175,7 +171,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
                            for element in desired_columns]
     elif label_type == "m":  # multiple label lines
         if data_start is None:
-            raise EndProgramError("Error in read_catalog function. When multiple label lines are used, the start"
+            raise other_classes.EndProgramError("Error in read_catalog function. When multiple label lines are used, the start"
                                   "of data needs to be specified. That did not happen.")
         # Capture the lines that are part of the header.
         label_lines = all_lines[label_row:data_start]
@@ -189,7 +185,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
                            desired_columns]
 
     else:
-        raise EndProgramError("Error in read_catalog function. Type of labels was specified incorrectly. "
+        raise other_classes.EndProgramError("Error in read_catalog function. Type of labels was specified incorrectly. "
                               "Should be either 's' or 'm', for single or multiple lines.", label_type)
 
     if filters:
@@ -210,6 +206,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
                     # ...test the condition. It looks funky since filter_elements[f][1] is a function! It will
                     # be a comparison operator (<, >, ==, etc). That comparison operator was assigned in the
                     # _parse_filter_string function.
+                    # TODO: what is going on here??? Doument his a lot better
                     if not filter_elements_list[f][1](line[filter_idx_list[f]], filter_elements_list[f][2]):
                         break  # It failed a filter test, and the break will skip the else clause, where we add this
                                     # to the table.

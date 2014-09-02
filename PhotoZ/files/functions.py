@@ -138,3 +138,17 @@ def distance(x1, x2, y1, y2):
     """
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
+def save_as_one_pdf(figs, filename):
+    """
+    Save the figures into one long PDF file
+
+    :param figs: list of figures to be saved as PDFs
+    :param filename: place where the PDFs will be saved
+    :return: none
+    """
+
+    # Save the pdfs as one file
+    pp = PdfPages(filename)
+    for fig in figs:
+        pp.savefig(fig)
+    pp.close()
