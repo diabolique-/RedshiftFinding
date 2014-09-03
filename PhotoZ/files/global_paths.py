@@ -17,7 +17,11 @@ z_config_file = sextractor_params_directory + "z.sex"
 
 # Where the SExtractor catalogs will be. The code will move the created files here, to reduce clutter in the
 # SExtractor directory.
-catalogs_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/Gemini/")
+catalogs_save_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/Gemini/")
+
+#Where the code will look for all catalogs. Needs to be either the same directory as catalogs_save_directory,
+# or a parent directory of it.
+catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/")
 
 # Location for calibration catalogs to be saved to.
 calibration_catalogs_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/SDSS_catalogs")

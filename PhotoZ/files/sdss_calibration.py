@@ -14,7 +14,7 @@ def sdss_calibration(sex_sources, sdss_sources, band):
     # Now need to match stars in sex_sources to those in SDSS
     pairs = match_sources(sex_sources, sdss_sources)
     print len(pairs)
-    if not pairs:  # If matching didn't work
+    if len(pairs) == 0:  # If matching didn't work
         return False
 
 

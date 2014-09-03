@@ -71,7 +71,7 @@ def _sextractor_process(detection_image, measurement_image):
 
     # Determine the name of the catalog
     sex_catalog_name = functions.make_cluster_name(measurement_image.split("/")[-1]) + ".cat"
-    sex_catalog_path = global_paths.catalogs_directory + sex_catalog_name
+    sex_catalog_path = global_paths.catalogs_save_directory + sex_catalog_name
 
     # Run SExtractor once before the loop, to get a baseline
 
@@ -118,11 +118,13 @@ def _sextractor_process(detection_image, measurement_image):
 
     # Now find the best zero point for these sources
     # TODO: this might be minus
-    zero_point += sdss_calibration.sdss_calibration(sex_sources, sdss_sources, band)
+    zero_point_change = sdss_calibration.sdss_calibration(sex_sources, sdss_sources, band)
     # Check to see that the zero-point didn't return False.
-    if not zero_point:
+    if zero_point_change is False:
         os.remove(sex_catalog_path)
         return False
+    else:
+        zero_point += zero_point_change
     # rerun SExtractor with this new calibrated zeropoint
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
     # This should result in a calibrated catalog.

@@ -2,6 +2,7 @@ from PhotoZ.files import Cluster
 import os
 import re
 import math
+from matplotlib.backends.backend_pdf import PdfPages
 
 # TODO: make read catalogs function, should work for both SExtractor and SDSS
 
@@ -83,11 +84,15 @@ def make_cluster_name(filename):
     # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
 
     # Look for format of Gemini images
-    gemini_image = re.compile("MOO[0-9]{4}\+|\-[0-9]{4}_r|z\.fits")
+    gemini_image = re.compile("MOO[0-9]{4}(\+|\-)[0-9]{4}_(r|z)\.fits")
     # MOO, then 4 numeric characters, then + or -, then 4 numeric characters, then _, then r or z, then .fits
     # This is the format my code outputs SExtractor catalogs with. TODO: is it? Should probably use IRAC catalog format
 
-    if simplest.match(name):
+    my_catalog = re.compile("MOO[0-9]{4}(\+|\-)[0-9]{4}_(r|z)\.cat")
+
+    if my_catalog.match(name):
+        return name[0:-2]  # Don't include band
+    elif simplest.match(name):
         # First replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
         name = name.replace("p", "+")
         name = name.replace("m", "-")
@@ -97,6 +102,7 @@ def make_cluster_name(filename):
 
     elif gemini_image.match(name):
         return name  # name is good as is
+
 
     # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does
     #  not match. IF it doesn't match, tell the user that.
