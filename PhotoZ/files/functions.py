@@ -77,37 +77,41 @@ def make_cluster_name(filename):
     :return: name of the cluster
     :rtype: str
     """
-    name = filename.split(".")[0]
+
+    # TODO: make the catalogs I was first given easily distinguishable from the other ones. I want them to be
+    # different, so I can compare them to the ones my code makes from SExtractor.
+    name = filename
+
 
     # First look for something of the form m####p####
-    simplest = re.compile("m[0-9]{4}p|m[0-9]{4}")
+    known_catalogs = re.compile("m[0-9]{4}(p|m)[0-9]{4}[.]phot[.]dat")
     # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
 
-    # Look for format of Gemini images
-    gemini_image = re.compile("MOO[0-9]{4}(\+|\-)[0-9]{4}_(r|z)\.fits")
-    # MOO, then 4 numeric characters, then + or -, then 4 numeric characters, then _, then r or z, then .fits
-    # This is the format my code outputs SExtractor catalogs with. TODO: is it? Should probably use IRAC catalog format
+    my_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]cat")
+    # This is the format my code outputs SExtractor catalogs with.
 
-    my_catalog = re.compile("MOO[0-9]{4}(\+|\-)[0-9]{4}_(r|z)\.cat")
+    irac = re.compile(r"MOO_[0-9]{4}([+]|[-])[0-9]{4}_irac1_bg[.]fits[.]cat")
+    # Format of IRAC catalogs. Has MOO_, 4 digits, + or -, 4 more digits, then _irac1_bg
 
     if my_catalog.match(name):
-        return name[0:-2]  # Don't include band
-    elif simplest.match(name):
-        # First replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
+        return name[0:-6]  # Don't include band or extension
+    elif irac.match(name):
+        return "MOO" + name[4:13]  # MOO + the digits in the name
+    elif known_catalogs.match(name):
+        name = name[0:10]
+        #  replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
         name = name.replace("p", "+")
         name = name.replace("m", "-")
-        # Now have the beginning be taken off, and replaced with MOO
-        name = "MOO" + name[1:]
+        # Now have the beginning be taken off, and replaced with MOO. Append Known to the end, so I can distinguish
+        name = "MOO" + name[1:] + " Known"
         return name
 
-    elif gemini_image.match(name):
-        return name  # name is good as is
 
-
+    print name
     # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does
     #  not match. IF it doesn't match, tell the user that.
     # TODO: add cases for Gemini images, as well as IRAC images.
-    return name
+    return "not working"
 
 
 def check_for_slash(path):
