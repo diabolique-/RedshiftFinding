@@ -217,3 +217,9 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
 
     return table
 
+def column_labels(filepath, desired_columns):
+    # Workds with gemini.phot.dat catalogs
+
+    f = open(filepath)
+    data_row = f.readline().strip().split()[1:]  # Ignore # on the front
+    return [data_row[c] for c in desired_columns]

@@ -3,20 +3,30 @@ import math
 class Source(object):
     """Class representing a source detected by SExtractor. Holds data in all bands that exist for the object."""
 
-    def __init__(self, ra, dec, bands, mags, mag_errors):
+    def __init__(self, ra, dec, mag_bands, mags, mag_errors, color_bands=None, color_values=None, color_errors = None):
         """Create a galaxy object using the information passed in."""
         self.ra = float(ra)
         self.dec = float(dec)
         self.mags = dict()
-        self.mag_errors = dict()
         self.mag_residuals = dict()
-        if len(bands) == len(mags) == len(mag_errors):
-            for i in range(len(bands)):
-                self.mags[bands[i]] = data(mags[i], mag_errors[i])
+        self.colors = dict()
+        if len(mag_bands) == len(mags) == len(mag_errors):
+            for i in range(len(mag_bands)):
+                self.mags[mag_bands[i]] = data(mags[i], mag_errors[i])
+
+        # In only need this part because of the dumb color catalogs. SExtractor input is so much easier.
+        if color_bands and color_values and color_errors:
+            if len(color_bands) == len(color_values) == len(color_errors):
+                for i in range(len(color_bands)):
+                    self.colors[color_bands[i]] = data(color_values[i], color_errors[i])
+
 
 
         # Assume it is not a RS member for now, this will change as the code runs.
         self.RS_member = False
+
+    def init_color(self, mag_band, mag, color_bands, color, color_error):
+        self.mags = dict
 
     def __repr__(self):  # Shows how sources are printed.
         return str("ra=" + str(self.ra) + ", dec=" + str(self.dec))
@@ -41,7 +51,7 @@ class data(object):
         return str(self.value) + "+-" + str(self.error)
     # TODO: get an actual plus minus sign in there
     def __add__(self, other):
-        """ REdefines the addition operator to return a data object. Adds values, and adds errors in quadrature.
+        """ Redefines the addition operator to return a data object. Adds values, and adds errors in quadrature.
 
         :param other: has to be a data object
         :return: data object with the correct thing
@@ -53,7 +63,7 @@ class data(object):
         :param other: has to be another data object
         :return: data object
         """
-        return data(self.value - other.value, math.sqrt((self.error)**2 + (other.error)**2))
+        return data(self.value - other.value, math.sqrt(self.error**2 + other.error**2))
 
 
 class EndProgramError(Exception):

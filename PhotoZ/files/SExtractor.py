@@ -111,9 +111,9 @@ def _sextractor_process(detection_image, measurement_image):
     sdss_catalog = catalog.read_catalog(sdss_catalog_path, ["ra", "dec", band], label_type="s", label_row=0)
 
     # Each line is a source, so turn it into that.
-    sdss_sources = [other_classes.Source(line[0], line[1], bands=[band], mags=[line[2]], mag_errors=[0])
+    sdss_sources = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]], mag_errors=[0])
                     for line in sdss_catalog]
-    sex_sources = [other_classes.Source(line[2], line[3], bands=[band], mags=[line[0]], mag_errors=[line[1]])
+    sex_sources = [other_classes.Source(line[2], line[3], mag_bands=[band], mags=[line[0]], mag_errors=[line[1]])
                    for line in sex_stars]
 
     # Now find the best zero point for these sources
@@ -140,7 +140,7 @@ def _sextractor_process(detection_image, measurement_image):
                                          filters=["FLAGS < 4", "MAGERR_APER < 0.2", "CLASS_STAR > 0.8", "MAG_APER > 17",
                                                   "MAG_APER < ""20.5"])
         # Turn them into sources
-        sex_sources = [other_classes.Source(line[2], line[3], bands=[band], mags=[line[0]], mag_errors=[line[1]])
+        sex_sources = [other_classes.Source(line[2], line[3], mag_bands=[band], mags=[line[0]], mag_errors=[line[1]])
                        for line in sex_stars]
 
         # Match them with SDSS sources

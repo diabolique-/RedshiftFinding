@@ -2,6 +2,7 @@ from PhotoZ.files import SExtractor
 from PhotoZ.files import functions
 from PhotoZ.files import global_paths
 from PhotoZ.files import read_in_catalogs
+import cPickle
 
 
 # Tell the program where to start
@@ -9,7 +10,7 @@ from PhotoZ.files import read_in_catalogs
 # 1: Starts by reading in catalogs, turning the different catalogs into Cluster objects
 # 2: Starts by reading in saved Cluster objects from the specified directory.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 1
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -28,5 +29,18 @@ if START_WITH == 0:
 
     SExtractor.sextractor_main(image_list)
 
-if START_WITH >= 1:
-    read_in_catalogs.read_sex_catalogs()
+if START_WITH <= 1:
+    cluster_list = read_in_catalogs.read_sex_catalogs()
+
+    # save cluster list to disk
+    cPickle.dump(cluster_list, open(global_paths.pickle_file, 'w'), -1)
+
+
+if START_WITH == 2:
+    # read in cluster objects
+    cluster_list = cPickle.load(open(global_paths.pickle_file, 'r'))
+    print cluster_list
+
+if START_WITH <= 2:
+    # find the red sequence redshifts
+    pass

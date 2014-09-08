@@ -16,4 +16,4 @@ class Cluster(object):
         self.sources_list = sources_list
 
     def __repr__(self):  # how the object appears when printed
-        return self.name + "; spec z = " + str(self.spec_z)
+        return self.name

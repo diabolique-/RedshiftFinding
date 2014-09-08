@@ -102,9 +102,20 @@ def make_cluster_name(filename):
         #  replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
         name = name.replace("p", "+")
         name = name.replace("m", "-")
-        # Now have the beginning be taken off, and replaced with MOO. Append Known to the end, so I can distinguish
-        name = "MOO" + name[1:] + " Known"
+        # Now have the beginning be taken off, and replaced with MOO.
+        name = "MOO" + name[1:]
+
+        # Create a dictionary mapping the objects to their known redshifts
+        redshifts = {"MOO0012+1602": "0.94", "MOO0024+3303": "1.11", "MOO0125+1344": "1.12",
+             "MOO0130+0922": "1.15", "MOO0133-1057": "0.96", "MOO0212-1813": "1.09", "MOO0224-0620": "0.81",
+             "MOO0245+2018": "0.76", "MOO0319-0025": "1.19", "MOO1155+3901": "1.01", "MOO1210+3154": "1.05",
+             "MOO1319+5519": "0.94", "MOO1335+3004": "0.98", "MOO1514+1346": "1.06", "MOO1625+2629": "1.20",
+             "MOO2205-0917": "0.93", "MOO2320-0620": "0.92", "MOO2348+0846": "0.89", "MOO2355+1030": "1.27"}
+
+        # Add the redshift to the name for easy access
+        name += (", z = " + redshifts[name])
         return name
+
 
 
     print name
