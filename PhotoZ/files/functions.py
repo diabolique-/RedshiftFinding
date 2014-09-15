@@ -90,11 +90,15 @@ def make_cluster_name(filename):
     my_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]cat")
     # This is the format my code outputs SExtractor catalogs with.
 
+    gemini_images = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]fits")
+
     irac = re.compile(r"MOO_[0-9]{4}([+]|[-])[0-9]{4}_irac1_bg[.]fits[.]cat")
     # Format of IRAC catalogs. Has MOO_, 4 digits, + or -, 4 more digits, then _irac1_bg
 
     if my_catalog.match(name):
         return name[0:-6]  # Don't include band or extension
+    elif gemini_images.match(name):
+        return name[0:-7]  # Don't include band or extension
     elif irac.match(name):
         return "MOO" + name[4:13]  # MOO + the digits in the name
     elif known_catalogs.match(name):

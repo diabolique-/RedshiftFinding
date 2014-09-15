@@ -10,31 +10,46 @@ from PhotoZ.files import catalog
 
 
 def sextractor_main(image_paths):
-    # TODO: document
+    """Perform the process to run SExtractor on a list of images.
+
+    Matches r and z images, then calls the SExtractor function to run it with z as the detection image, and the
+    as measurement. Collects figures showing the calibration process, and then saves them.
+
+    :param image_paths: list of strings that are the paths of all the images that will be run through SExtractor
+    :type image_paths: list
+    :return: None. Does make catalogs that are placed in the location the user specified in the global_paths file.
+    """
     # First, need to group the images based on what cluster they are of
     grouped_images = _group_images(image_paths)
     # Have a list of tuples
 
+    # Initialize a list of figures that will be appended to as the code runs. Will hold the mag differences vs mag
+    # plot for SDSS calibrations.
     figures = []
 
     # We want to run everything on all the clusters, so iterate through them all
     for cluster in grouped_images:
+        # Selet the r and z band images in each pair. That is what will be used for now.
         r_image, z_image = _find_r_and_z_images(cluster)
 
         # Test to make sure we have both r and z images
         # TODO: add a check for irac1 and 2 (if dual image mode is the way to go with those.)
-        if not r_image and z_image:
+        if not (r_image and z_image):
             print "Both r and z images were not found for a cluster. Here are the paths for the images that were found:"
             for path in cluster:
                 print path
+            other_classes.EndProgramError("Exiting.")
         else:  # did find r and z images
-            # Now we can do the SExtractor work oyn the r and z images
+            # Now we can do the SExtractor work on the r and z images
             for measurement_image in [z_image, r_image]:
                 # Always use z as the detection image, since it is the reddest band in optical
-                figure = _sextractor_process(z_image, measurement_image)
+                figure = _create_catalogs(z_image, measurement_image)
+                # That function does the dirty work of running SExtractor and calibrating to SDSS. It returns a
+                # figure object of the plot comparing the final SDSS calibration. If it couldn't work, it will return
+                # False.
 
 
-                # If it couldn't work (maybe there weren't any stars), exit.
+                # If it couldn't work (maybe there weren't any stars, etc),  exit.
                 if not figure:
                     # TODO: ask Brodwin how to handle images that can't be calibrated to SDSS.
 
@@ -44,49 +59,59 @@ def sextractor_main(image_paths):
                     figures.append(figure)
                 # TODO: can also adjust FWHM from SExtractor catalog information
 
+    # SAve all figures as PDF
+    functions.save_as_one_pdf(figures, global_paths.calibration_plots)
 
+def _create_catalogs(detection_image, measurement_image):
+    """Run the whole process of creating calibrated catalogs. Runs SExtractor, and then calibrates the catalog to SDSS.
 
-            else:  # no break in for loop (ie, calibration_success worked)
+    Does calibration by adjusting the zeropoint parameter in SExtractor.
 
-                pass
-    # SAve all figures
-    # TODO: integrate with file structure
-    functions.save_as_one_pdf(figures, "/Users/gbbtz7/Desktop/calibration.pdf")
-
-def _sextractor_process(detection_image, measurement_image):
-    # TODO: document
-
+    :param detection_image: path to the image that detection will be done in (generally z)
+    :param measurement_image: path to the image that will be used as measurement. Can be any band.
+    :return: figure showing the results of the SDSS calibration. Will be SDSS mags vs mag difference. Will return
+    False if calibration failed for whatever reason (normally not enough sources matching between the image and the
+    SDSS catalog.
+    """
     # Determine which .sex file to use
+    config_file = None # initialization to make PyCharm happy.
     if functions.get_band_from_filename(measurement_image) == "r":
         config_file = global_paths.r_config_file
     elif functions.get_band_from_filename(measurement_image) == "z":
         config_file = global_paths.z_config_file
     else:
-        other_classes.EndProgramError("The SExtractor function for r and z bands was passed an image that isn't r "
-                                      "or z. Something is wrong")
-
+        other_classes.EndProgramError("The _create_catalogs function for r and z bands was passed an image that isn't r "
+                                      "or z. Something is wrong", measurement_image)
 
     # Get the default zeropoint from the file
     zero_point = SExtractor_functions.find_zeropoint(config_file)
 
-    # Determine the name of the catalog
-    sex_catalog_name = functions.make_cluster_name(measurement_image.split("/")[-1]) + ".cat"
+    # Determine the name of the catalog. Will be of the form Filename_band.cat
+    sex_catalog_name = functions.make_cluster_name(measurement_image.split("/")[-1]) + "_" +\
+                       functions.get_band_from_filename(measurement_image) + ".cat"
+    # add the directory the catalog should be stored in.
     sex_catalog_path = global_paths.catalogs_save_directory + sex_catalog_name
 
-    # Run SExtractor once before the loop, to get a baseline
-
+    # Run SExtractor once before the calibration loop, to get a baseline before calibration
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
+
+    ####################################################################################################################
+
+    # START COMMENTING FROM HERE!
+
+    ####################################################################################################################
 
     # TODO: somewhere down the road, do aperture corrections. These are neccesary for calibrating
     #  optical to IR mags.
 
-    # Read in the SExtractor catalog. We only want stars of a certain magnitude.
+    # Read in the SExtractor catalog. We only want stars of a certain magnitude for good calibration.
     # read the SExtractor catalog with my read_catalog_function. Pick out stars of a given mag range
     sex_stars = catalog.read_catalog(sex_catalog_path,
                                      desired_columns=["MAG_APER", "MAGERR_APER", "ALPHA_J2000", "DELTA_J2000"],
                                      label_type="m", label_row=0, data_start=8,
                                      filters=["FLAGS < 4", "MAGERR_APER < 0.2", "CLASS_STAR > 0.8", "MAG_APER > 17",
                                               "MAG_APER < ""20.5"])
+
 
     # Use the locations of these stars to make a corresponding SDSS catalog
     # TODO: ask Brodwin about how good this is. Is CLASS_STAR > 0.8 too constricting, or not constricting enough?
@@ -145,12 +170,13 @@ def _sextractor_process(detection_image, measurement_image):
 
         # Match them with SDSS sources
         pairs = sdss_calibration.match_sources(sex_sources, sdss_sources)
-        print len(pairs), "final pairs"
-
+        if len(pairs) == 0:
+            return False  # calibration didn't work
         # Initialize lists to be filled with data points
         sdss_mags, mag_differences, mag_errors = [], [], []
 
         for pair in pairs:
+            print pair
             # Calculate residuals
             pair[0].find_mag_residual(band, pair[1].mags[band].value)
 
@@ -164,6 +190,9 @@ def _sextractor_process(detection_image, measurement_image):
         figure = plt.figure(figsize=(6, 5))
         ax = figure.add_subplot(1, 1, 1)
 
+        if len(sdss_mags) == 0 or len(mag_differences) == 0 or len(mag_errors) == 0:
+            return False
+
         ax.errorbar(sdss_mags, mag_differences, mag_errors, fmt=".", c="k")
         # TODO: add labels on axes
         return figure
@@ -173,9 +202,6 @@ def _sextractor_process(detection_image, measurement_image):
         #     user_approved = True
         # else:
         #     user_approved = False
-
-    # Now that it is done, return True to indicate that it worked.
-            # TODO: do I really need this? Do I do anything with it?
 
 
 
@@ -236,9 +262,9 @@ def _group_images(image_paths):
         filename = path.split("/")[-1]  # This takes the last thing, which will be the filename
         coordinates = _get_numbers_from_filename(filename)  # Calling then coordinates is generous, it is just an 8
         # digit string of digits that would make coordinates if parsed properly.
-        if not coordinates in groups_dict:
+        if not coordinates in groups_dict:  # If the cluster isn't already in the dict, make it be
             groups_dict[coordinates] = [path]
-        else:
+        else: # If it's already there, add the current image to the list of images.
             groups_dict[coordinates].append(path)
 
     groups_list = groups_dict.values()
@@ -262,8 +288,12 @@ def _get_numbers_from_filename(filename):
 
 
 def _find_r_and_z_images(images):
+    """Take a list of images paths, and figure out which is r, and which is z.
+
+    :type images: list of strings showing the file paths for the images.
+    :return: path for r image, path for z image.
+    """
     # TODO: test,
-    # TODO: document
     # Figure out which images are r and z TODO: add IRAC
     r_image, z_image = "", ""
     for image_path in images:
@@ -273,6 +303,6 @@ def _find_r_and_z_images(images):
         elif band == "z":
             z_image = image_path
         else:
-            print "An image was passed in with a band I can't do anything with. Here is the path: " + image_path
+            other_classes.EndProgramError("An image was passed in with a band I can't do anything with.", image_path)
         # TODO: put [3.6] and [4.5] in this when if I ever run things from IRAC images.
     return r_image, z_image

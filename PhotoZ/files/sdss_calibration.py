@@ -13,7 +13,6 @@ def sdss_calibration(sex_sources, sdss_sources, band):
 
     # Now need to match stars in sex_sources to those in SDSS
     pairs = match_sources(sex_sources, sdss_sources)
-    print len(pairs)
     if len(pairs) == 0:  # If matching didn't work
         return False
 
@@ -91,7 +90,7 @@ def make_sdss_catalog(stars_catalog, path):
 
 
     # Create command using templates. Basically, the things at the end replace the %s each time. The s indicates string.
-    command = "select ra,dec,u,g,r,i,z from PhotoObj where ra between %s and %s and dec between %s and %s and type=6 " \
+    command = "select ra,dec,u,g,r,i,z from PhotoObj where ra between %s and %s and dec between %s and %s " \
               "and (u between 17.0 and 20.5 or g between 17.0 and 20.5 or r between 17.0 and 20.5 or i between 17.0 " \
               "and 20.5 or z between 17.0 and 20.5)" %(min_ra, max_ra, min_dec, max_dec)
     # and r between 17.0 and 20.5 or z between 17.0 and 20.5
