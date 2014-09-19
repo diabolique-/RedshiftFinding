@@ -17,19 +17,22 @@ class Source(object):
         # In only need this part because of the dumb color catalogs. SExtractor input is so much easier.
         if color_bands and color_values and color_errors:
             if len(color_bands) == len(color_values) == len(color_errors):
-                for i in range(len(color_bands)):
-                    self.colors[color_bands[i]] = data(color_values[i], color_errors[i])
-
-
+                # first make color bands have minuses instead of ms
+                fixed_color_bands = [c.replace("m", "-") for c in color_bands]
+                for i in range(len(fixed_color_bands)):
+                    self.colors[fixed_color_bands[i]] = data(color_values[i], color_errors[i])
 
         # Assume it is not a RS member for now, this will change as the code runs.
         self.RS_member = False
+
+    def add_band_data(self, mag_band, mag, mag_error):
+        self.mags[mag_band] = data(mag, mag_error)
 
     def init_color(self, mag_band, mag, color_bands, color, color_error):
         self.mags = dict
 
     def __repr__(self):  # Shows how sources are printed.
-        return str("ra=" + str(self.ra) + ", dec=" + str(self.dec))
+        return "(" + "ra=" + str(self.ra) + ", dec=" + str(self.dec) + ")"
 
     def find_mag_residual(self, band, comparison_mag):
         """Calculate the magnitude residual, compared to some known magnitude.
@@ -39,7 +42,14 @@ class Source(object):
         """
         self.mag_residuals[band] = data(comparison_mag - self.mags[band].value, self.mags[band].error)
 
-# TODO: add calculations of color
+    def calculate_color(self):
+        print self.mags
+        for band1 in self.mags:
+            for band2 in self.mags:
+                if not band1 == band2:
+                    self.colors[band1 + "-" + band2] = self.mags[band1] - self.mags[band2]
+                    # That line does the error things automatically, since noth mags are data objects
+        print self.colors
 
 
 class data(object):

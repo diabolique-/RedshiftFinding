@@ -23,13 +23,11 @@ def sextractor_main(image_paths):
     grouped_images = _group_images(image_paths)
     # Have a list of tuples
 
-    # Initialize a list of figures that will be appended to as the code runs. Will hold the mag differences vs mag
-    # plot for SDSS calibrations.
+    # Initialize list of figures to be filled as needed
     figures = []
-
     # We want to run everything on all the clusters, so iterate through them all
     for cluster in grouped_images:
-        # Selet the r and z band images in each pair. That is what will be used for now.
+        # Select the r and z band images in each pair. That is what will be used for now.
         r_image, z_image = _find_r_and_z_images(cluster)
 
         # Test to make sure we have both r and z images
@@ -59,8 +57,9 @@ def sextractor_main(image_paths):
                     figures.append(figure)
                 # TODO: can also adjust FWHM from SExtractor catalog information
 
-    # SAve all figures as PDF
+    # save the multipage pdf file
     functions.save_as_one_pdf(figures, global_paths.calibration_plots)
+
 
 def _create_catalogs(detection_image, measurement_image):
     """Run the whole process of creating calibrated catalogs. Runs SExtractor, and then calibrates the catalog to SDSS.
@@ -95,17 +94,10 @@ def _create_catalogs(detection_image, measurement_image):
     # Run SExtractor once before the calibration loop, to get a baseline before calibration
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
 
-    ####################################################################################################################
-
-    # START COMMENTING FROM HERE!
-
-    ####################################################################################################################
-
     # TODO: somewhere down the road, do aperture corrections. These are neccesary for calibrating
     #  optical to IR mags.
 
     # Read in the SExtractor catalog. We only want stars of a certain magnitude for good calibration.
-    # read the SExtractor catalog with my read_catalog_function. Pick out stars of a given mag range
     sex_stars = catalog.read_catalog(sex_catalog_path,
                                      desired_columns=["MAG_APER", "MAGERR_APER", "ALPHA_J2000", "DELTA_J2000"],
                                      label_type="m", label_row=0, data_start=8,
@@ -116,7 +108,7 @@ def _create_catalogs(detection_image, measurement_image):
     # Use the locations of these stars to make a corresponding SDSS catalog
     # TODO: ask Brodwin about how good this is. Is CLASS_STAR > 0.8 too constricting, or not constricting enough?
 
-    # find the name of the SDSS catalog. catalogs path + name (derived from Sextractor catalog) + band_sdss.cat
+    # make the name of the SDSS catalog. catalogs path + name (derived from Sextractor catalog) + band_sdss.cat
     sdss_catalog_path = global_paths.calibration_catalogs_directory + sex_catalog_path.split("/")[-1].split("_")[0] + \
                                                                      "_sdss.cat"
     # See if the catalog exists, and if it doesn't, make it
@@ -135,7 +127,7 @@ def _create_catalogs(detection_image, measurement_image):
     # Read the sdss catalog
     sdss_catalog = catalog.read_catalog(sdss_catalog_path, ["ra", "dec", band], label_type="s", label_row=0)
 
-    # Each line is a source, so turn it into that.
+    # Each line is a source, so turn both the SExtractor and SDSS catalogs into source objects
     sdss_sources = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]], mag_errors=[0])
                     for line in sdss_catalog]
     sex_sources = [other_classes.Source(line[2], line[3], mag_bands=[band], mags=[line[0]], mag_errors=[line[1]])
@@ -146,16 +138,17 @@ def _create_catalogs(detection_image, measurement_image):
     zero_point_change = sdss_calibration.sdss_calibration(sex_sources, sdss_sources, band)
     # Check to see that the zero-point didn't return False.
     if zero_point_change is False:
+        # If calibration didn't work, get rid of the catalog, and exit the SExtractor function
         os.remove(sex_catalog_path)
         return False
-    else:
+    else:  # calibration did work, so change the zero point to the calibrated value
         zero_point += zero_point_change
+
     # rerun SExtractor with this new calibrated zeropoint
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
     # This should result in a calibrated catalog.
 
-
-    # Ask the user if it is a good fit
+    # We want user input on whether the calibration is good or not. Showing a plot will be the best way
     user_approved = False
     while not user_approved:
         # Read in new SExtractor catalog
@@ -169,27 +162,32 @@ def _create_catalogs(detection_image, measurement_image):
                        for line in sex_stars]
 
         # Match them with SDSS sources
-        pairs = sdss_calibration.match_sources(sex_sources, sdss_sources)
+        pairs = []
+        for source in sex_sources:
+            match = sdss_calibration.match_sources(source, sdss_sources)
+            if match:
+                pairs.append((source, match))
         if len(pairs) == 0:
             return False  # calibration didn't work
         # Initialize lists to be filled with data points
         sdss_mags, mag_differences, mag_errors = [], [], []
 
         for pair in pairs:
-            print pair
             # Calculate residuals
             pair[0].find_mag_residual(band, pair[1].mags[band].value)
 
             # Only want to plot ones with non-outlier residuals
-            if abs(pair[0].mag_residuals[band].value) < 0.3:
+            if abs(pair[0].mag_residuals[band].value) < 1.0:
                 # Append things to the proper list
                 sdss_mags.append(pair[1].mags[band].value)
                 mag_differences.append(pair[0].mag_residuals[band].value)
                 mag_errors.append(pair[0].mags[band].error)
 
+        # create figure and axis
         figure = plt.figure(figsize=(6, 5))
         ax = figure.add_subplot(1, 1, 1)
 
+        # If all the points were outliers, then they will not be appended. I'm not sure this should ever happen, though.
         if len(sdss_mags) == 0 or len(mag_differences) == 0 or len(mag_errors) == 0:
             return False
 

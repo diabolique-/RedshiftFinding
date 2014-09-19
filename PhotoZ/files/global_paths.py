@@ -30,7 +30,7 @@ calibration_catalogs_directory = functions.check_for_slash("/Users/gbbtz7/Google
 pickle_file = "/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/PythonSavedClusters/Clusters.p"
 
 # Place to save calibration plots
-calibration_plots = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Plots/")
+calibration_plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/calibration.pdf"
 
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.

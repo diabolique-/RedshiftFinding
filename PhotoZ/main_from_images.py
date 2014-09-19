@@ -29,8 +29,16 @@ if START_WITH == 0:
 
     SExtractor.sextractor_main(image_list)
 
+    print "\n\nDone with SExtractor\n\n"
+
 if START_WITH <= 1:
     cluster_list = read_in_catalogs.read_sex_catalogs()
+
+    print "\n\nDone reading catalogs\n\n"
+
+    # Do color calculations
+    for c in cluster_list:
+        c.calculate_color()
 
     # save cluster list to disk
     cPickle.dump(cluster_list, open(global_paths.pickle_file, 'w'), -1)
@@ -39,8 +47,12 @@ if START_WITH <= 1:
 if START_WITH == 2:
     # read in cluster objects
     cluster_list = cPickle.load(open(global_paths.pickle_file, 'r'))
-    print cluster_list
 
 if START_WITH <= 2:
     # find the red sequence redshifts
     pass
+     # Do color calculations
+    # for c in cluster_list:
+    #     c.calculate_color()
+
+print cluster_list

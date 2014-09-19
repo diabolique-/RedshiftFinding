@@ -12,7 +12,11 @@ def sdss_calibration(sex_sources, sdss_sources, band):
 
 
     # Now need to match stars in sex_sources to those in SDSS
-    pairs = match_sources(sex_sources, sdss_sources)
+    pairs = []
+    for source in sex_sources:
+        match = match_sources(source, sdss_sources)
+        if match:
+            pairs.append((source, match))
     if len(pairs) == 0:  # If matching didn't work
         return False
 
@@ -48,21 +52,22 @@ def sdss_calibration(sex_sources, sdss_sources, band):
 
 
 
-def match_sources(source_list_1, source_list_2):
+def match_sources(source, source_list):
 
     pairs = []  # initialize empty list, will append as we go
-    for source_1 in source_list_1:
-        closest_dist = 999
-        closest_source_2 = None
-        for source_2 in source_list_2:
-            dist = functions.distance(source_1.ra, source_2.ra, source_1.dec, source_2.dec)
-            if dist < closest_dist:
-                closest_dist = dist
-                closest_source_2 = source_2
-        # I'll accept them as pairs if the distance is less than an arcsecond between them. That is enough error
-        if closest_dist < 1.0/3600.0:
-            pairs.append((source_1, closest_source_2))
-    return pairs
+
+    closest_dist = 999
+    closest_source = None
+    for source_2 in source_list:
+        dist = functions.distance(source.ra, source_2.ra, source.dec, source_2.dec)
+        if dist < closest_dist:
+            closest_dist = dist
+            closest_source = source_2
+    # I'll accept them as pairs if the distance is less than an arcsecond between them. That is enough error
+    if closest_dist < 1.0/3600.0:
+        return closest_source
+    else:
+        return None
 
 
 def _call_sdss_sql(command, format="csv"):
