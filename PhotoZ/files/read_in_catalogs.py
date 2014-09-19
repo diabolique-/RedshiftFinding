@@ -66,7 +66,7 @@ def read_sex_catalogs():
                 matching_source = sdss_calibration.match_sources(this_source, this_cluster.sources_list)
                 # Will return either a source object or None
                 if matching_source:  # If it already exists in the cluster
-                    matching_source.add_band(band, line[2], line[3])
+                    matching_source.add_band_data(band, line[2], line[3])
                 else:  # If it doesn't exist, append it
                     this_cluster.sources_list.append(this_source)
 
