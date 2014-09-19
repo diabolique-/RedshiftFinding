@@ -6,7 +6,7 @@ import matplotlib.cm as cmx
 import numpy.polynomial.polynomial as polynomial
 import numpy as np
 
-from UselessNow.NotFromImages import main_functions
+# from UselessNow.NotFromImages import main_functions
 
 
 def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_sequence=False, return_axis=False):
@@ -24,25 +24,47 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
              second: axes object for the CMD itself. This is needed because I need to over plot things later, and
              returning the object is easier than making this function way more complicated than it already is.
     """
-
     # Need to make lists that can be plotted on the CMD
     # start by initializing empty lists to append to
     non_rs_mags, rs_mags, non_rs_colors, rs_colors, rs_color_errs, non_rs_color_errs = [], [], [], [], [], []
-    for gal in cluster.galaxy_list:
-        if gal.sources_list < 5.0:  # Don't want huge errors crowding out the plot
-            if distinguish_red_sequence:  # If the user wants the RS in red, we need separate lists for RS and not
-                if gal.RS_member:
-                    rs_mags.append(gal.mag)
-                    rs_colors.append(gal.color)
-                    rs_color_errs.append(gal.color_error)
-                else:
-                    non_rs_mags.append(gal.mag)
-                    non_rs_colors.append(gal.color)
-                    non_rs_color_errs.append(gal.color_error)
-            else:
-                non_rs_mags.append(gal.mag)
-                non_rs_colors.append(gal.color)
-                non_rs_color_errs.append(gal.color_error)
+    if distinguish_red_sequence:
+        rs_mags = [source.mags[band].value for source in cluster.sources_list
+                   if source.RS_member and source.colors[color].error < 5.0]
+        non_rs_mags = [source.mags[band].value for source in cluster.sources_list
+                       if not source.RS_member and source.colors[color].error < 5.0]
+        rs_colors = [source.colors[color].value for source in cluster.sources_list
+                     if source.RS_member and source.colors[color].error < 5.0]
+        non_rs_colors = [source.colors[color].value for source in cluster.sources_list
+                         if not source.RS_member and source.colors[color].error < 5.0]
+        rs_color_errs = [source.colors[color].error for source in cluster.sources_list
+                         if source.RS_member and source.colors[color].error < 5.0]
+        non_rs_color_errs = [source.colors[color].error for source in cluster.sources_list
+                             if not source.RS_member and source.colors[color].error < 5.0]
+    else:  # use non_rs lists
+        non_rs_mags = [source.mags[band].value for source in cluster.sources_list
+                       if source.colors[color].error < 5.0]
+        non_rs_colors = [source.colors[color].value for source in cluster.sources_list
+                         if source.colors[color].error < 5.0]
+        non_rs_color_errs = [source.colors[color].error for source in cluster.sources_list
+                             if source.colors[color].error < 5.0]
+
+
+    #
+    # for gal in cluster.galaxy_list:
+    #     if gal.sources_list < 5.0:  # Don't want huge errors crowding out the plot
+    #         if distinguish_red_sequence:  # If the user wants the RS in red, we need separate lists for RS and not
+    #             if gal.RS_member:
+    #                 rs_mags.append(gal.mag)
+    #                 rs_colors.append(gal.color)
+    #                 rs_color_errs.append(gal.color_error)
+    #             else:
+    #                 non_rs_mags.append(gal.mag)
+    #                 non_rs_colors.append(gal.color)
+    #                 non_rs_color_errs.append(gal.color_error)
+    #         else:
+    #             non_rs_mags.append(gal.mag)
+    #             non_rs_colors.append(gal.color)
+    #             non_rs_color_errs.append(gal.color_error)
 
     # Set up the plot
     fig = plt.figure(figsize=(9, 6))
@@ -86,16 +108,6 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
         return fig, color_mag_ax
     else:
         return fig
-
-def _make_mag_color_lists(cluster, color, band):
-    # TODO: document
-    """
-
-    :param cluster:
-    :param color:
-    :param band:
-    :return:
-    """
 
 
 def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):

@@ -63,12 +63,12 @@ def read_sex_catalogs():
             # Match sources to existing ones in the cluster
             for line in cat_table:
                 this_source = other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]])
-                matching_source = sdss_calibration.match_sources(this_source, this_cluster.source_list)
+                matching_source = sdss_calibration.match_sources(this_source, this_cluster.sources_list)
                 # Will return either a source object or None
-                if matching_source: # If it already exists in the cluster
+                if matching_source:  # If it already exists in the cluster
                     matching_source.add_band(band, line[2], line[3])
                 else:  # If it doesn't exist, append it
-                    this_cluster.source_list.append(this_source)
+                    this_cluster.sources_list.append(this_source)
 
 
 
@@ -94,6 +94,8 @@ def read_sex_catalogs():
                 this_cluster.ch2_data = True
 
             # Convert them to source objects
+            # I don't worry about adding each source at once, since clusters that are from these catalogs will not be
+            #  used with any other catalogs. They are independent.
             this_cluster.sources_list = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]],
                                                               mag_errors=[0], color_bands=[band_labels[1]],
                                                               color_values=[line[3]], color_errors=[line[4]])
@@ -104,8 +106,7 @@ def read_sex_catalogs():
             pass # Don't do anything with them for now.
 
         else:
-            print "this is what it prints when no match."
-            # print cat_filename, "no match"
+            print cat_filename, "no match"
 
     return cluster_list
 

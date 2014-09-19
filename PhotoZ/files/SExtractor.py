@@ -26,7 +26,10 @@ def sextractor_main(image_paths):
     # Initialize list of figures to be filled as needed
     figures = []
     # We want to run everything on all the clusters, so iterate through them all
+    print len(grouped_images)
+    counter = 1
     for cluster in grouped_images:
+        print counter
         # Select the r and z band images in each pair. That is what will be used for now.
         r_image, z_image = _find_r_and_z_images(cluster)
 
@@ -56,6 +59,7 @@ def sextractor_main(image_paths):
                 else: # did work, and therefore returned a figure
                     figures.append(figure)
                 # TODO: can also adjust FWHM from SExtractor catalog information
+        counter += 1
 
     # save the multipage pdf file
     functions.save_as_one_pdf(figures, global_paths.calibration_plots)

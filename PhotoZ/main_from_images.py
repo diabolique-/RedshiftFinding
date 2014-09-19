@@ -2,6 +2,7 @@ from PhotoZ.files import SExtractor
 from PhotoZ.files import functions
 from PhotoZ.files import global_paths
 from PhotoZ.files import read_in_catalogs
+from PhotoZ.files import plotting
 import cPickle
 
 
@@ -10,7 +11,7 @@ import cPickle
 # 1: Starts by reading in catalogs, turning the different catalogs into Cluster objects
 # 2: Starts by reading in saved Cluster objects from the specified directory.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 0
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -49,7 +50,14 @@ if START_WITH == 2:
     cluster_list = cPickle.load(open(global_paths.pickle_file, 'r'))
 
 if START_WITH <= 2:
+    for c in cluster_list:
+        for s in c.sources_list:
+            print s.mags
+
     # find the red sequence redshifts
+    figures = [plotting.plot_color_mag(c, "r-z", "z", predictions=False) for c in cluster_list
+               if c.r_data and c.z_data]
+    functions.save_as_one_pdf(figures, "/Users/gbbtz7/GoogleDrive/Research/Plots/WHOOOOOO.pdf")
     pass
      # Do color calculations
     # for c in cluster_list:
