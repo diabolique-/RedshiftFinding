@@ -1,4 +1,5 @@
 # coding=utf-8
+from PhotoZ.files import functions
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol
@@ -6,7 +7,7 @@ import matplotlib.cm as cmx
 import numpy.polynomial.polynomial as polynomial
 import numpy as np
 
-# from UselessNow.NotFromImages import main_functions
+# TODO: document
 
 
 def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_sequence=False, return_axis=False):
@@ -28,43 +29,34 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     # start by initializing empty lists to append to
     non_rs_mags, rs_mags, non_rs_colors, rs_colors, rs_color_errs, non_rs_color_errs = [], [], [], [], [], []
     if distinguish_red_sequence:
+        # The many if statements are to make sure only objects with the right data are included
         rs_mags = [source.mags[band].value for source in cluster.sources_list
-                   if source.RS_member and source.colors[color].error < 5.0]
+                   if (source.RS_member and color in source.colors and source.colors[color].error < 5.0 and band in
+                       source.mags)]
         non_rs_mags = [source.mags[band].value for source in cluster.sources_list
-                       if not source.RS_member and source.colors[color].error < 5.0]
+                       if (not source.RS_member and color in source.colors and source.colors[color].error < 5.0 and
+                           band in source.mags)]
         rs_colors = [source.colors[color].value for source in cluster.sources_list
-                     if source.RS_member and source.colors[color].error < 5.0]
+                     if (source.RS_member and color in source.colors and source.colors[color].error < 5.0 and band in
+                         source.mags)]
         non_rs_colors = [source.colors[color].value for source in cluster.sources_list
-                         if not source.RS_member and source.colors[color].error < 5.0]
+                         if (not source.RS_member and color in source.colors and source.colors[color].error < 5.0 and
+                             band in source.mags)]
         rs_color_errs = [source.colors[color].error for source in cluster.sources_list
-                         if source.RS_member and source.colors[color].error < 5.0]
+                         if (source.RS_member and color in source.colors and source.colors[color].error < 5.0 and
+                             band in source.mags)]
         non_rs_color_errs = [source.colors[color].error for source in cluster.sources_list
-                             if not source.RS_member and source.colors[color].error < 5.0]
+                             if (not source.RS_member and color in source.colors and source.colors[color].error < 5.0
+                                 and band in source.mags)]
     else:  # use non_rs lists
         non_rs_mags = [source.mags[band].value for source in cluster.sources_list
-                       if source.colors[color].error < 5.0]
+                       if (color in source.colors and source.colors[color].error < 5.0 and band in source.mags)]
         non_rs_colors = [source.colors[color].value for source in cluster.sources_list
-                         if source.colors[color].error < 5.0]
+                         if (color in source.colors and source.colors[color].error < 5.0 and band in source.mags)]
         non_rs_color_errs = [source.colors[color].error for source in cluster.sources_list
-                             if source.colors[color].error < 5.0]
+                             if (color in source.colors and source.colors[color].error < 5.0 and band in source.mags)]
 
 
-    #
-    # for gal in cluster.galaxy_list:
-    #     if gal.sources_list < 5.0:  # Don't want huge errors crowding out the plot
-    #         if distinguish_red_sequence:  # If the user wants the RS in red, we need separate lists for RS and not
-    #             if gal.RS_member:
-    #                 rs_mags.append(gal.mag)
-    #                 rs_colors.append(gal.color)
-    #                 rs_color_errs.append(gal.color_error)
-    #             else:
-    #                 non_rs_mags.append(gal.mag)
-    #                 non_rs_colors.append(gal.color)
-    #                 non_rs_color_errs.append(gal.color_error)
-    #         else:
-    #             non_rs_mags.append(gal.mag)
-    #             non_rs_colors.append(gal.color)
-    #             non_rs_color_errs.append(gal.color_error)
 
     # Set up the plot
     fig = plt.figure(figsize=(9, 6))
@@ -89,21 +81,23 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
         color_mag_ax.errorbar(x=rs_mags, y=rs_colors, yerr=rs_color_errs, c="r", fmt=".", elinewidth=0.35, capsize=0,
                               markersize=5)  # Only difference is that this is plotted in red.
 
-    color_mag_ax.set_title(cluster.name + ",  spec z = " + str(cluster.spec_z))
-    color_mag_ax.set_xlabel(cluster.filters[1] + " Band Magnitude")
-    color_mag_ax.set_ylabel(cluster.filters[0] + " - " + cluster.filters[1] + " Color")
+    color_mag_ax.set_title(cluster.name)
+    color_mag_ax.set_xlabel(band + " Band Magnitude")
+    color_mag_ax.set_ylabel(color + " Color")
 
     # Change the scale to match Stanford 14. Each filter set will be different
-    if cluster.filters == ["r", "z"]:
-        color_mag_ax.set_xlim([20, 24.5])  # should be [20, 23.5] Changed to see high redshift better
+    if color == "r-z":
+        color_mag_ax.set_xlim([20, 23.5])  # should be [20, 23.5] Changed to see high redshift better
         # color_mag_ax.set_xlim([18, 26])
         color_mag_ax.set_ylim([0, 3.5])
-    elif cluster.filters == ["i", "[3.6]"]:
+    elif color == "i-ch1":
         color_mag_ax.set_xlim([18, 21.5])
         color_mag_ax.set_ylim([-.5, 4.5])
-    elif cluster.filters == ["[3.6]", "[4.5]"]:
+    elif color == "ch1-ch2":
         color_mag_ax.set_xlim([18.5, 21.5])
         color_mag_ax.set_ylim([-1, 0.5])
+
+
     if return_axis:
         return fig, color_mag_ax
     else:
@@ -124,7 +118,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
     """
 
     # first need to get the model's predictions
-    predictions_dict = main_functions.make_prediction_dictionary(0.05)
+    predictions_dict = functions.make_prediction_dictionary(0.05)
     # Returns a dictionary with keys = redshifts, values = predictions objects
 
     # Set the colormap, to color code lines by redshift

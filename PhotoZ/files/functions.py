@@ -5,6 +5,8 @@ import math
 from matplotlib.backends.backend_pdf import PdfPages
 import ezgal
 import numpy as np
+import cPickle
+from PhotoZ.files import other_classes
 
 
 # TODO: make read catalogs function, should work for both SExtractor and SDSS
@@ -194,14 +196,13 @@ def make_prediction_dictionary(spacing):
     # Make the models
     # For simplicity right now, just use the 0.1 gyr exponential model
     model = ezgal.ezgal("bc03_exp_0.1_z_0.02_chab_evolved_zf_3.0_ugrizch1ch2.model")
-    #model = ezgal.ezgal("m05_ssp_z_0.02_krou_evolved_zf_3.0_ugrizch1ch2.model")
+
+
 
     # Set formation redshift and observed redshifts
     zf = 3.0
     zs = np.arange(0.5, 1.5000001, spacing)
 
-    # Normalize to Dai et al 2009
-    # model.set_normalization(filter='ch1', mag=-25.06, apparent=False, vega=True, z=0.24)
     # Normalize to Coma
     model.set_normalization(filter='ks', mag=10.9, apparent=True, vega=True, z=0.023)
 
@@ -213,7 +214,7 @@ def make_prediction_dictionary(spacing):
 
     # Now need to get slopes for all redshifts
     # The info here is stored in a file, so reading that will be all we need
-    load_file = open("/Users/gbbtz7/GoogleDrive/Research/Data/Best_fit_RS_slope.pickle")
+    load_file = open("/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/Best_fit_RS_slope.pickle")
     slope_dict = cPickle.load(load_file)
     # slope_dict is a dictionary of keys = redshifts, values = slopes
     load_file.close()

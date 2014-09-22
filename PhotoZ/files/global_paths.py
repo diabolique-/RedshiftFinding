@@ -32,5 +32,8 @@ pickle_file = "/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/PythonSavedClust
 # Place to save calibration plots
 calibration_plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/calibration.pdf"
 
+# Place to save all other plots
+plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/Complete.pdf"
+
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.
