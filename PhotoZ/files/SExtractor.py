@@ -63,6 +63,8 @@ def sextractor_main(image_paths):
 
     # save the multipage pdf file
     functions.save_as_one_pdf(figures, global_paths.calibration_plots)
+    # close all plots
+    plt.close("all")
 
 
 def _create_catalogs(detection_image, measurement_image):

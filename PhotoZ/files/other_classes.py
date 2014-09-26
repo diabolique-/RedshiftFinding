@@ -16,6 +16,8 @@ class Source(object):
         self.colors = dict()
         self.r_id = r_id
         self.z_id = z_id
+        self.in_location = True
+
         if len(mag_bands) == len(mags) == len(mag_errors):
             for i in range(len(mag_bands)):
                 self.mags[mag_bands[i]] = data(mags[i], mag_errors[i])
@@ -75,6 +77,17 @@ class data(object):
         :return: data object
         """
         return data(self.value - other.value, math.sqrt(self.error**2 + other.error**2))
+
+
+    # redefine comparison operators. Just use the value, ignore the error
+    def __lt__(self, other):
+        return self.value < other
+    def __gt__(self, other):
+        return self.value > other
+    def __le__(self, other):
+        return self.value <= other
+    def __ge__(self, other):
+        return self.value >= other
 
 class Predictions(object):
     """
