@@ -10,7 +10,7 @@ import cPickle
 # 1: Starts by reading in catalogs, turning the different catalogs into Cluster objects
 # 2: Starts by reading in saved Cluster objects from the specified directory.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 1
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -34,14 +34,14 @@ if START_WITH == 0:
 if START_WITH <= 1:
     cluster_list = read_in_catalogs.read_sex_catalogs()
 
-    print "\n\nDone reading catalogs\n\n"
-
     # Do color calculations
     for c in cluster_list:
         c.calculate_color()
 
     # save cluster list to disk
     cPickle.dump(cluster_list, open(global_paths.pickle_file, 'w'), -1)
+
+    print "\n\nDone reading catalogs\n\n"
 
 
 if START_WITH == 2:

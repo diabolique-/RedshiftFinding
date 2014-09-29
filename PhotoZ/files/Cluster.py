@@ -64,14 +64,16 @@ class Cluster(object):
         # if type(plot_figures) is list:
         #     plot_figures.append(plotting.plot_color_mag(self, predictions=False, color=color, band=color[-1]))
 
+        print self.name
 
         if "z" not in self.name:
-            plot_figures.append(self._find_location_cut())
-            # self._find_location_cut()
+            # plot_figures.append(self._find_location_cut())
+            self._find_location_cut(1.5)
 
 
 
-        initial_z = self._find_initial_redshift(color, plot_bar=False)
+        initial_z = self._find_initial_redshift(color, plot_bar=True)
+
 
         bluer_color_cut = [-0.30, -0.25, -0.20]
         if self.name.startswith("MOO1636"):
@@ -89,8 +91,8 @@ class Cluster(object):
         # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
         if type(plot_figures) is list:
             # Plot with predictions
-            plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
-                                                        distinguish_red_sequence=False))
+            # plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
+            #                                             distinguish_red_sequence=False))
             # # Plot the initial cut with RS based on the initial cut
             # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
             #                                                     "Fitting", color_red_sequence=False))
@@ -114,6 +116,9 @@ class Cluster(object):
                                    brighter_mag_cut, dimmer_mag_cut)
             sample = [source for source in self.sources_list if source.RS_member]
 
+            if len(sample) < 3:  # TODO: remove this once calibration is fixed
+                return
+
             # Plot most recent redshift estimate
             # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
             #     i+1)))
@@ -135,10 +140,10 @@ class Cluster(object):
         # self._set_as_rs_member([source for source in self.sources_list if source.in_location], self.photo_z, color, -0.3, 0.6,
         #                        -1.2, 1.0)
         # Override for lower redshift struture, since there is a higher structure that gets in the way
-        if self.name.startswith("MOO2214"):
-            self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.2, 0.2, -1.2, 0.8)
-        if self.name.startswith("MOO1636"):
-            self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.3, 0.6, -1.6, 1.0)
+        # if self.name.startswith("MOO2214"):
+        #     self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.2, 0.2, -1.2, 0.8)
+        # if self.name.startswith("MOO1636"):
+        #     self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.3, 0.6, -1.6, 1.0)
 
 
         # Plot final redshift on CMD
@@ -195,6 +200,9 @@ class Cluster(object):
         if plot_bar:
             plotting.plot_initial_redshift_finding(self, z_list, galaxies_list, best_z)
 
+        if best_z == 0:
+            best_z = 0.50  # TODO: get rid of this once I correct calibration
+
         return best_z
 
     def _fit_redshift_to_sample(self, galaxies, color, band):
@@ -211,7 +219,7 @@ class Cluster(object):
     def _get_stats_from_chi(self, chi_redshift_pairs, figs=None):
         # TODO: Document
 
-        best_chi = 999
+        best_chi = 999999999999
         best_z = 999
         for pair in chi_redshift_pairs:
             if pair[1] < best_chi:
@@ -286,7 +294,9 @@ class Cluster(object):
             else:
                 source.color_residual = 999
 
-    def _find_location_cut(self):
+    def _find_location_cut(self, radius):
+
+        # radius is in arcminutes
 
         # median_ra = np.median([source.ra for source in self.sources_list])
         median_ra = (max([source.ra for source in self.sources_list]) + min([source.ra for source in
@@ -303,24 +313,23 @@ class Cluster(object):
 
         for source in self.sources_list:
             dist = math.sqrt((source.ra - median_ra)**2 + (source.dec - median_decs)**2)
-            if self.name.startswith("MOO2214"):
-                # For more distant MOO2214, use 0.0 < 1.0
-                # for less distant MOO2214, use 0.0 < 2.0
-                if dist < 1.0/60.0:
-                    source.in_location = True
-                else:
-                    source.in_location = False
-            if self.name.startswith("MOO1636"):
-                # best for MOO1636: 0 < 1.3
-                if dist < 1.3/60.0:
-                    source.in_location = True
-                else:
-                    source.in_location = False
+            # if self.name.startswith("MOO2214"):
+            #     # For more distant MOO2214, use 0.0 < 1.0
+            #     # for less distant MOO2214, use 0.0 < 2.0
+            #     if dist < 1.0/60.0:
+            #         source.in_location = True
+            #     else:
+            #         source.in_location = False
+            # if self.name.startswith("MOO1636"):
+            #     # best for MOO1636: 0 < 1.3
+            #     if dist < 1.3/60.0:
+            #         source.in_location = True
+            #     else:
+            #         source.in_location = False
+            if dist < radius/60.0:
+                source.in_location = True
             else:
-                if dist < 2.0/60.0:
-                    source.in_location = True
-                else:
-                    source.in_location = False
+                source.in_location = False
 
         fig = plotting.plot_location(self)
         return fig

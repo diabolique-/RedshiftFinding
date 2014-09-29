@@ -91,11 +91,14 @@ def _create_catalogs(detection_image, measurement_image):
     # Get the default zeropoint from the file
     zero_point = SExtractor_functions.find_zeropoint(config_file)
 
+
     # Determine the name of the catalog. Will be of the form Filename_band.cat
     sex_catalog_name = functions.make_cluster_name(measurement_image.split("/")[-1]) + "_" +\
                        functions.get_band_from_filename(measurement_image) + ".cat"
     # add the directory the catalog should be stored in.
     sex_catalog_path = global_paths.catalogs_save_directory + sex_catalog_name
+
+    print sex_catalog_name
 
     # Run SExtractor once before the calibration loop, to get a baseline before calibration
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
@@ -149,6 +152,7 @@ def _create_catalogs(detection_image, measurement_image):
         return False
     else:  # calibration did work, so change the zero point to the calibrated value
         zero_point += zero_point_change
+        print "new zero point: " + str(zero_point)
 
     # rerun SExtractor with this new calibrated zeropoint
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
@@ -169,7 +173,7 @@ def _create_catalogs(detection_image, measurement_image):
         # Match them with SDSS sources
         pairs = []
         for source in sex_sources:
-            match = sdss_calibration.match_sources(source, sdss_sources)
+            match = sdss_calibration.find_match(source, sdss_sources)
             if match:
                 pairs.append((source, match))
         if len(pairs) == 0:
@@ -184,11 +188,11 @@ def _create_catalogs(detection_image, measurement_image):
             pair[0].find_mag_residual(band, pair[1].mags[band].value)
 
             # Only want to plot ones with non-outlier residuals
-            if abs(pair[0].mag_residuals[band].value) < 1.0:
+            # if abs(pair[0].mag_residuals[band].value) < 1.0:
                 # Append things to the proper list
-                sdss_mags.append(pair[1].mags[band].value)
-                mag_differences.append(pair[0].mag_residuals[band].value)
-                mag_errors.append(pair[0].mags[band].error)
+            sdss_mags.append(pair[1].mags[band].value)
+            mag_differences.append(pair[0].mag_residuals[band].value)
+            mag_errors.append(pair[0].mags[band].error)
 
         # create figure and axis
         figure = plt.figure(figsize=(6, 5))
@@ -202,7 +206,7 @@ def _create_catalogs(detection_image, measurement_image):
 
         ax.errorbar(sdss_mags, mag_differences, mag_errors, fmt=".", c="k")
         ax.set_xlabel("SDSS mag")
-        ax.set_ylabel("Mag difference")
+        ax.set_ylabel("SDSS - measured mags")
         ax.set_title(sex_catalog_name[:-4])
         # plt.show()
         #

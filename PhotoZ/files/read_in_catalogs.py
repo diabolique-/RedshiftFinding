@@ -57,10 +57,6 @@ def read_sex_catalogs():
             cat_table = catalog.read_catalog(cat, ["ALPHA_J2000", "DELTA_J2000", "MAG_APER", "MAGERR_APER", "NUMBER"],
                                              label_type="m", data_start=8, filters=["FLAGS < 4"])
 
-            # # Turn the table into source objects, and assign source list to cluster object
-            # this_cluster.sources_list = [other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]])
-            #                              for line in cat_table]
-
             # Match sources to existing ones in the cluster
             for line in cat_table:
                 # Create a source object based on the band
@@ -75,7 +71,7 @@ def read_sex_catalogs():
                         matching_source = source
                         break
                 else:  # No break, didn't find an match based on ID. Will match on ra/dec
-                    matching_source = sdss_calibration.match_sources(this_source, this_cluster.sources_list)
+                    matching_source = sdss_calibration.find_match(this_source, this_cluster.sources_list)
                 # Will return either a source object or None
                 if matching_source:  # If it already exists in the cluster
                     matching_source.add_band_data(band, line[2], line[3])
