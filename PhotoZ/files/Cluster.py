@@ -201,7 +201,7 @@ class Cluster(object):
             plotting.plot_initial_redshift_finding(self, z_list, galaxies_list, best_z)
 
         if best_z == 0:
-            best_z = 0.50  # TODO: get rid of this once I correct calibration
+            best_z = "0.5"  # TODO: get rid of this once I correct calibration
 
         return best_z
 

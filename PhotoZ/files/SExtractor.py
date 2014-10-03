@@ -98,8 +98,6 @@ def _create_catalogs(detection_image, measurement_image):
     # add the directory the catalog should be stored in.
     sex_catalog_path = global_paths.catalogs_save_directory + sex_catalog_name
 
-    print sex_catalog_name
-
     # Run SExtractor once before the calibration loop, to get a baseline before calibration
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
 
@@ -111,7 +109,7 @@ def _create_catalogs(detection_image, measurement_image):
                                      desired_columns=["MAG_APER", "MAGERR_APER", "ALPHA_J2000", "DELTA_J2000"],
                                      label_type="m", label_row=0, data_start=8,
                                      filters=["FLAGS < 4", "MAGERR_APER < 0.2", "CLASS_STAR > 0.8", "MAG_APER > 17",
-                                              "MAG_APER < ""20.5"])
+                                              "MAG_APER < 20.5"])
 
 
     # Use the locations of these stars to make a corresponding SDSS catalog
@@ -152,7 +150,6 @@ def _create_catalogs(detection_image, measurement_image):
         return False
     else:  # calibration did work, so change the zero point to the calibrated value
         zero_point += zero_point_change
-        print "new zero point: " + str(zero_point)
 
     # rerun SExtractor with this new calibrated zeropoint
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
@@ -165,7 +162,7 @@ def _create_catalogs(detection_image, measurement_image):
                                          desired_columns=["MAG_APER", "MAGERR_APER", "ALPHA_J2000", "DELTA_J2000"],
                                          label_type="m", label_row=0, data_start=8,
                                          filters=["FLAGS < 4", "MAGERR_APER < 0.2", "CLASS_STAR > 0.8", "MAG_APER > 17",
-                                                  "MAG_APER < ""20.5"])
+                                                  "MAG_APER < 20.5"])
         # Turn them into sources
         sex_sources = [other_classes.Source(line[2], line[3], mag_bands=[band], mags=[line[0]], mag_errors=[line[1]])
                        for line in sex_stars]
