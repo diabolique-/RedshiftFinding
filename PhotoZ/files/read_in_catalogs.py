@@ -54,16 +54,24 @@ def read_sex_catalogs():
                 this_cluster.z_data = True
 
             # Read in the catalog
-            cat_table = catalog.read_catalog(cat, ["ALPHA_J2000", "DELTA_J2000", "MAG_APER", "MAGERR_APER"],
+            cat_table = catalog.read_catalog(cat, ["ALPHA_J2000", "DELTA_J2000", "MAG_APER", "MAGERR_APER", "NUMBER"],
                                              label_type="m", data_start=8, filters=["FLAGS < 4"])
-            # Turn the table into source objects, and assign source list to cluster object
-            this_cluster.sources_list = [other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]])
-                                         for line in cat_table]
 
             # Match sources to existing ones in the cluster
             for line in cat_table:
-                this_source = other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]])
-                matching_source = sdss_calibration.match_sources(this_source, this_cluster.sources_list)
+                # Create a source object based on the band
+                if band == "r":
+                    this_source = other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]], r_id=line[4])
+                elif band == "z":
+                    this_source = other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]], z_id=line[4])
+
+                # see if an object with a matching IS number already exists in the cluster sources_list
+                for source in this_cluster.sources_list:
+                    if source.r_id == line[4] or source.z_id == line[4]:   # line[4] holds id numbers
+                        matching_source = source
+                        break
+                else:  # No break, didn't find an match based on ID. Will match on ra/dec
+                    matching_source = sdss_calibration.find_match(this_source, this_cluster.sources_list)
                 # Will return either a source object or None
                 if matching_source:  # If it already exists in the cluster
                     matching_source.add_band_data(band, line[2], line[3])
@@ -73,7 +81,6 @@ def read_sex_catalogs():
 
 
         elif gemini_catalog.match(cat_filename):  # catalogs that end in .phot.dat
-            # Have less desirable formatting, so need to be wrangled
             # Read in the catalog data
             cat_table = catalog.read_catalog(cat, ["ra", "dec", 3, 4, 5], label_type='s', label_row=0, data_start=2)
             # Columns 3, 4, 5 are mag, color, color error
@@ -81,15 +88,15 @@ def read_sex_catalogs():
             # find the bands in the catalog, and let the cluster know it has data in these bands
             band_labels = catalog.column_labels(cat, [3, 4])
             if band_labels[1] == 'rmz':
-                band = 'r'
+                band = 'z'
                 this_cluster.r_data = True
                 this_cluster.z_data = True
             elif band_labels[1] == 'imch1':
-                band = 'i'
+                band = 'ch1'
                 this_cluster.i_data = True
                 this_cluster.ch1_data = True
             elif band_labels[1] == 'ch1mch2':
-                band = 'ch1'
+                band = 'ch2'
                 this_cluster.ch1_data = True
                 this_cluster.ch2_data = True
 
