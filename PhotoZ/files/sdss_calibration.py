@@ -14,10 +14,9 @@ def sdss_calibration(sex_sources, sdss_sources, band):
     # Now need to match stars in sex_sources to those in SDSS
     pairs = []
     for source in sex_sources:
-        match = find_match(source, sdss_sources)
+        match = match_sources(source, sdss_sources)
         if match:
             pairs.append((source, match))
-
     if len(pairs) == 0:  # If matching didn't work
         return False
 
@@ -29,10 +28,10 @@ def sdss_calibration(sex_sources, sdss_sources, band):
 
     # a good first guess is an average of all differences
     mag_differences = [pair[0].mag_residuals[band].value for pair in pairs]
-    first_guess = round((sum(mag_differences)/len(mag_differences)), 2)
+    first_guess = sum(mag_differences)/len(mag_differences)
 
     # throw out outliers
-    # pairs = [pair for pair in pairs if abs(pair[0].mag_residuals[band].value - first_guess) < 0.3]
+    pairs = [pair for pair in pairs if abs(pair[0].mag_residuals[band].value - first_guess) < 0.3]
 
     # now fit a chi_squared
     best_chi_squared = 99999999999999999999999
@@ -53,7 +52,9 @@ def sdss_calibration(sex_sources, sdss_sources, band):
 
 
 
-def find_match(source, source_list):
+def match_sources(source, source_list):
+
+    pairs = []  # initialize empty list, will append as we go
 
     closest_dist = 999
     closest_source = None
@@ -62,9 +63,8 @@ def find_match(source, source_list):
         if dist < closest_dist:
             closest_dist = dist
             closest_source = source_2
-    # I'll accept them as pairs if the distance is less than half an arcsecond between them. That is enough error
-    if closest_dist < 0.5/3600.0:
-        # print str(closest_dist*3600)
+    # I'll accept them as pairs if the distance is less than an arcsecond between them. That is enough error
+    if closest_dist < 1.0/3600.0:
         return closest_source
     else:
         return None
