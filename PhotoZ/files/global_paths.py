@@ -2,8 +2,8 @@ from PhotoZ.files import functions
 
 # TODO: document this better
 
-# base_directory = "/Users/gbbtz7/"
-base_directory = "/Users/gillenbrown/"
+base_directory = "/Users/gbbtz7/"
+# base_directory = "/Users/gillenbrown/"
 
 # Tell the program where the various things will be, so it can find them
 # Directory containing all the images. They can be in subdirectories of this directory; it will find all .fits files
