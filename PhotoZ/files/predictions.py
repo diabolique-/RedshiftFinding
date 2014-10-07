@@ -26,7 +26,7 @@ def make_prediction_dictionary(spacing):
     # Normalize to Coma
     model.set_normalization(filter='ks', mag=10.9, apparent=True, vega=True, z=0.023)
 
-    # Calculate observables
+    # Calculate observables in AB mags
     mags = model.get_apparent_mags(zf, filters=["sloan_r", "sloan_i", "sloan_z", "ch1", "ch2"], zs=zs, vega=False)
     # If the filters are changed, then the way the magnitudes are passed into the prediction object needs to be
     # changed as well. That work depends on the index of the specific filters

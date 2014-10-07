@@ -22,6 +22,7 @@ catalogs_save_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/R
 #Where the code will look for all catalogs. Needs to be either the same directory as catalogs_save_directory,
 # or a parent directory of it.
 catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/")
+# catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/IRAC/")
 
 # Location for calibration catalogs to be saved to.
 calibration_catalogs_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/SDSS_catalogs")

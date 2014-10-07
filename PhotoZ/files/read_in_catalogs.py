@@ -86,7 +86,7 @@ def read_sex_catalogs():
             # Columns 3, 4, 5 are mag, color, color error
 
             # find the bands in the catalog, and let the cluster know it has data in these bands
-            band_labels = catalog.column_labels(cat, [3, 4])
+            band_labels = catalog.get_column_labels(cat, [3, 4])
             if band_labels[1] == 'rmz':
                 band = 'z'
                 this_cluster.r_data = True
@@ -110,7 +110,21 @@ def read_sex_catalogs():
 
 
         elif irac_catalog.match(cat_filename):
-            pass # Don't do anything with them for now.
+            pass
+            # cat_table = catalog.read_catalog(cat, [1, 2, 3, 4, 5], label_type="s", label_row=0, data_start=1)
+            # # columns are ra, dec, ch1 flux [uJy], ch2 flux[uJy], ch1-ch2 color(Vega)
+            #
+            # # # need to convert the fluxes to AB magnitudes
+            # # for line in cat_table:
+            # #     if type(line[2]) != float or type(line[3]) != float:
+            # #         print cat_filename
+            # #         print line
+            #
+            # mags_table =[[line[0], line[1], functions.uJansky_to_AB_mag(line[2]),
+            #               functions.uJansky_to_AB_mag(line[3]), line[4]] for line in cat_table]
+            # # TODO: colors are still in Vega!!!
+            # print mags_table
+
 
         else:
             print cat_filename, "no match"

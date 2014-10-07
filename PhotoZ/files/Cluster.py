@@ -68,7 +68,7 @@ class Cluster(object):
 
         if "z" not in self.name:
             # plot_figures.append(self._find_location_cut())
-            self._find_location_cut(1.5)
+            self._find_location_cut(1.0)
 
 
 

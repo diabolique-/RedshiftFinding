@@ -183,3 +183,12 @@ def save_as_one_pdf(figs, filename):
         pp.savefig(fig)
     pp.close()
 
+def uJansky_to_AB_mag(uJanksys):
+    # Convert to erg cm^-2 s^-1 Hz^-1, where 1 Jansky = 10^-23 erg cm^-2 s^-1 Hz^-1
+    if uJanksys < 0.0:  # Some fluxes are negative, and that breaks the log function.
+        return 9999999.9
+    Janskys = uJanksys * (10**(-6))
+    return -2.5*math.log10(Janskys) +8.9
+
+
+# AB to Vega: http://irsa.ipac.caltech.edu/data/COSMOS/tables/scosmos/scosmos_irac_200706_colDescriptions.html
