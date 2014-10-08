@@ -41,6 +41,8 @@ def read_sex_catalogs():
         irac_catalog = re.compile(r"MOO_[0-9]{4}([+]|[-])[0-9]{4}_irac1_bg[.]fits[.]cat")
         # MOO_, 4 digits, + or -, 4 more digits, _irac_bg.fits.cat
 
+        keck_catalog = re.compile(r"m[0-9]{4}(p|m)[0-9]{4}[.]zr[.]cat")
+
         if sextractor_catalog.match(cat_filename):  # If it is a SExtractor catalog
             # find the band the catalog has data for
             band = functions.get_band_from_filename(cat_filename)
@@ -107,6 +109,13 @@ def read_sex_catalogs():
                                                               mag_errors=[0], color_bands=[band_labels[1]],
                                                               color_values=[line[3]], color_errors=[line[4]])
                                          for line in cat_table]
+
+        elif keck_catalog.match(cat_filename):
+            cat_table = catalog.read_catalog(cat, ["zmag", "zerr", "rmag", "rerr", "zflag", "rflag"], label_type="s",
+                                             label_row=0, data_start=1, filters=["zflag < 4", "rflag < 4"])
+            for line in cat_table:
+                print line
+            print cat_filename
 
 
         elif irac_catalog.match(cat_filename):
