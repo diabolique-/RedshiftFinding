@@ -131,10 +131,13 @@ def _create_catalogs(detection_image, measurement_image):
     # find the band of the SExtractor catalog, so we know what to calibrate
     band = functions.get_band_from_filename(sex_catalog_path.split("/")[-1])
 
+    print band, sex_catalog_name
+
     # Read the sdss catalog
     sdss_catalog = catalog.read_catalog(sdss_catalog_path, ["ra", "dec", band], label_type="s", label_row=0)
 
     # Each line is a source, so turn both the SExtractor and SDSS catalogs into source objects
+    # TODO: CHECT THAT THESE ARE THE RIGHT COLUMNS TO READ IN
     sdss_sources = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]], mag_errors=[0])
                     for line in sdss_catalog]
     sex_sources = [other_classes.Source(line[2], line[3], mag_bands=[band], mags=[line[0]], mag_errors=[line[1]])
@@ -150,6 +153,8 @@ def _create_catalogs(detection_image, measurement_image):
         return False
     else:  # calibration did work, so change the zero point to the calibrated value
         zero_point += zero_point_change
+
+        # TODO: READ IN BEST FWHM SOMEHOW, AND PUT THAT INTO CONSIDERATION TOO. THAT MIGHT FIX SOME THINGS
 
     # rerun SExtractor with this new calibrated zeropoint
     _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
