@@ -29,8 +29,6 @@ def read_sex_catalogs():
             this_cluster = Cluster.Cluster(cluster_name, [])
             cluster_list.append(this_cluster)
 
-
-
         # Use regular expressions to determine what type a catalog is.
         sextractor_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]cat")
         # MOO, 4 digits, + or -, 4 more digits, _, r or z, .cat
@@ -111,11 +109,21 @@ def read_sex_catalogs():
                                          for line in cat_table]
 
         elif keck_catalog.match(cat_filename):
-            cat_table = catalog.read_catalog(cat, ["zmag", "zerr", "rmag", "rerr", "zflag", "rflag"], label_type="s",
+            # read in catalog
+            cat_table = catalog.read_catalog(cat, ["x", "y", "zmag", "zerr", "rmag", "rerr"],
+                                             label_type="s",
                                              label_row=0, data_start=1, filters=["zflag < 4", "rflag < 4"])
-            for line in cat_table:
-                print line
-            print cat_filename
+
+            # let the cluster know it has data in r and z
+            this_cluster.r_data = True
+            this_cluster.z_data = True
+
+            # convert to source objects
+            this_cluster.sources_list = [other_classes.Source(line[0], line[1], ["r", "z"], mags=[line[4], line[2]],
+                                                              mag_errors=[
+                line[5], line[3]]) for line in cat_table]
+
+
 
 
         elif irac_catalog.match(cat_filename):

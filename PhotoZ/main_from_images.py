@@ -3,6 +3,7 @@ from PhotoZ.files import functions
 from PhotoZ.files import global_paths
 from PhotoZ.files import read_in_catalogs
 import cPickle
+import pyraf
 
 
 # Tell the program where to start
@@ -59,3 +60,10 @@ if START_WITH <= 2:
      # Do color calculations
     # for c in cluster_list:
     #     c.calculate_color()
+
+
+# fit a correction
+# pyraf.
+
+# TODO: make a function to calibrate catalogs to SDSS, rather than just starting from images. Can base it off of
+# existing calibration function

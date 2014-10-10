@@ -100,6 +100,8 @@ def make_cluster_name(filename):
     irac = re.compile(r"MOO_[0-9]{4}([+]|[-])[0-9]{4}_irac1_bg[.]fits[.]cat")
     # Format of IRAC catalogs. Has MOO_, 4 digits, + or -, 4 more digits, then _irac1_bg
 
+    keck = re.compile(r"m[0-9]{4}(p|m)[0-9]{4}[.]zr[.]cat")
+
     if my_catalog.match(name):
         return name[0:-6]  # Don't include band or extension
     elif gemini_images.match(name):
@@ -125,7 +127,14 @@ def make_cluster_name(filename):
         name += (", z = " + redshifts[name])
         return name
 
+    elif keck.match(name):
+        #  replace any p and m with + and - . I know I'm replacing the first m, but I will git rid of it next
+        name = name.replace("p", "+")
+        name = name.replace("m", "-")
+        # Now have the beginning be taken off, and replaced with MOO.
+        name = "MOO" + name[1:]
 
+        return name[:-7]
 
     print name
     # TODO: Test other things, like the format of the IRAC catalogs, as well as a general case for something that does

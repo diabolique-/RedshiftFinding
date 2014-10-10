@@ -266,7 +266,7 @@ def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, colo
     ax.plot(line.xs, line.ys, "k-", linewidth=0.5, label="Initial z")
     ax.scatter(cluster.predictions_dict[redshift].z_mag, cluster.predictions_dict[redshift].r_mag -
                cluster.predictions_dict[redshift].z_mag, c="r", s=10)  # Plot characteristic magnitude point
-    fig.suptitle(cluster.name + ", spec z = " + str(cluster.spec_z) + ", current z=" + str(redshift))
+    fig.suptitle(cluster.name + ", current z=" + str(redshift))
     ax.set_title(str(other_info), fontsize=10)
 
     return fig
@@ -294,7 +294,7 @@ def plot_location(cluster):
     ax = fig.add_subplot(1, 1, 1)
     # Have to check length of arrays, since 0 length lists can't be plotted
     if non_loc_non_rs_decs and non_loc_non_rs_ras:
-        ax.scatter(non_loc_non_rs_ras, non_loc_non_rs_decs, c="0.3", s=3, linewidth=0)
+        ax.scatter(non_loc_non_rs_ras, non_loc_non_rs_decs, c="0.2", s=2, linewidth=0)
     if loc_non_rs_decs and loc_non_rs_ras:
         ax.scatter(loc_non_rs_ras, loc_non_rs_decs, c="k", s=3)
     if rs_decs and rs_ras:

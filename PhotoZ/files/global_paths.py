@@ -25,9 +25,9 @@ catalogs_save_directory = functions.check_for_slash(base_directory + "GoogleDriv
 #Where the code will look for all catalogs. Needs to be either the same directory as catalogs_save_directory,
 # or a parent directory of it.
 
-# catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/")
+catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/")
 # catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/IRAC/")
-catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/Keck/")
+# catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/tes1/")
 
 
 # Location for calibration catalogs to be saved to.
@@ -40,7 +40,7 @@ pickle_file = base_directory + "GoogleDrive/Research/Data/CodeData/PythonSavedCl
 calibration_plots = base_directory + "GoogleDrive/Research/Plots/calibration.pdf"
 
 # Place to save all other plots
-plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/Complete.pdf"
+plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/GillenBrown.pdf"
 
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.

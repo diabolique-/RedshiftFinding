@@ -67,8 +67,11 @@ class Cluster(object):
         print self.name
 
         if "z" not in self.name:
-            # plot_figures.append(self._find_location_cut())
-            self._find_location_cut(1.0)
+            if self.name == "MOO0037+3306" or self.name == "MOO0105+1323":
+                self._find_xy_cut(750)  # TODO: write better cut function
+            else:
+                # plot_figures.append(self._find_location_cut())
+                self._find_location_cut(1.5)
 
 
 
@@ -91,8 +94,8 @@ class Cluster(object):
         # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
         if type(plot_figures) is list:
             # Plot with predictions
-            # plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
-            #                                             distinguish_red_sequence=False))
+            plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
+                                                        distinguish_red_sequence=False))
             # # Plot the initial cut with RS based on the initial cut
             # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
             #                                                     "Fitting", color_red_sequence=False))
@@ -136,7 +139,9 @@ class Cluster(object):
         self.lower_photo_z_error = z_lower_error
 
         # Make final RS cut, which will be slightly larger than the cut used to identify the RS
-        self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.3, 0.6, -1.2, 1.0)
+        self._set_as_rs_member(self.sources_list, self.photo_z[
+            color], color, -0.3, 0.6, -1.2,
+                                1.0)
         # self._set_as_rs_member([source for source in self.sources_list if source.in_location], self.photo_z, color, -0.3, 0.6,
         #                        -1.2, 1.0)
         # Override for lower redshift struture, since there is a higher structure that gets in the way
@@ -333,6 +338,20 @@ class Cluster(object):
 
         fig = plotting.plot_location(self)
         return fig
+
+    def _find_xy_cut(self, radius):
+        middle_x = (max([source.ra for source in self.sources_list]) + min([source.ra for source in
+                                                                             self.sources_list]))/2
+        middle_y = (max([source.dec for source in self.sources_list]) + min([source.dec for source in
+                                                                             self.sources_list]))/2
+
+        for source in self.sources_list:
+            dist = math.sqrt((source.ra - middle_x)**2 + (source.dec - middle_y)**2)
+
+            if dist < radius:
+                source.in_location = True
+            else:
+                source.in_location = False
 
     def _write_rs_catalog(self):
         # TODO: Document
