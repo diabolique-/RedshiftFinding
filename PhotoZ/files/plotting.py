@@ -178,7 +178,7 @@ def plot_residuals(cluster):
     return fig
 
 
-def plot_z_comparison(clusters, directory, filename):
+def plot_z_comparison(clusters, color, fit):
     """
     Plot and save the spectroscopic redshift vs calculated photometric redshift.
 
@@ -190,20 +190,24 @@ def plot_z_comparison(clusters, directory, filename):
     # Make lists of spectroscopic and photometric redshifts, since that's what the plot function takes
     spec, photo, upper_photo_err, lower_photo_err, weights = [], [], [], [], []
     for c in clusters:
-        if c.spec_z:  # Can't plot comparison if the cluster doesn't have a spectroscopic redshift
+        if c.spec_z and color in c.rs_z:  # Can't plot comparison if the cluster doesn't have a spectroscopic redshift
             spec.append(float(c.spec_z))
-            photo.append(float(c.photo_z))
+            photo.append(float(c.rs_z[color]))
             lower_photo_err.append(c.lower_photo_z_error)
             upper_photo_err.append(c.upper_photo_z_error)
-            weights.append(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2))  # Average the errors
+            # weights.append(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2))  # Average the errors
             # TODO: Find a better way to do the weighting for the fit. Simple averaging of the errors is WRONG.
     total_error = [lower_photo_err, upper_photo_err]
 
-    # Find the best fit line
-    fit = polynomial.polyfit(spec, photo, 1, w=weights)  # returns coefficients of a linear fit
-    # Turn these coefficients into a line
+    # # Find the best fit line
+    # fit = polynomial.polyfit(spec, photo, 1, w=weights)  # returns coefficients of a linear fit
+    # # Turn these coefficients into a line
     x = np.arange(0, 1.5, 0.01)
-    fit_line = fit[0] + x * fit[1]
+
+    # turn the fit into something that can be plotted
+    fit_line = 0
+    for coefficient in range(len(fit)):
+        fit_line += fit[coefficient]*x**(coefficient)
 
     # Plot everything
     # TODO: make work with lopsided error bars
@@ -224,7 +228,7 @@ def plot_z_comparison(clusters, directory, filename):
     ax.set_xlim((0.5, 1.5))
     ax.set_ylim((0.5, 1.5))
 
-    fig.savefig(directory + filename + ".pdf", format="pdf")
+    return fig
 
 
 def plot_initial_redshift_finding(cluster, z_list, galaxies_list, best_z):

@@ -28,7 +28,7 @@ class Cluster(object):
         self.z_data = False
         self.ch1_data = False
         self.ch2_data = False
-        self.photo_z = dict()
+        self.rs_z = dict()
 
     def __repr__(self):  # how the object appears when printed
         return self.name
@@ -64,8 +64,6 @@ class Cluster(object):
         # if type(plot_figures) is list:
         #     plot_figures.append(plotting.plot_color_mag(self, predictions=False, color=color, band=color[-1]))
 
-        print self.name
-
         if "z" not in self.name:
             if self.name == "MOO0037+3306" or self.name == "MOO0105+1323":
                 self._find_xy_cut(750)  # TODO: write better cut function
@@ -94,8 +92,8 @@ class Cluster(object):
         # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
         if type(plot_figures) is list:
             # Plot with predictions
-            plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
-                                                        distinguish_red_sequence=False))
+            # plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
+            #                                             distinguish_red_sequence=False))
             # # Plot the initial cut with RS based on the initial cut
             # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
             #                                                     "Fitting", color_red_sequence=False))
@@ -134,31 +132,31 @@ class Cluster(object):
 
 
         # Set cluster attributes, now that the process is complete
-        self.photo_z[color] = best_z
+        self.rs_z[color] = best_z
         self.upper_photo_z_error = z_upper_error
         self.lower_photo_z_error = z_lower_error
 
         # Make final RS cut, which will be slightly larger than the cut used to identify the RS
-        self._set_as_rs_member(self.sources_list, self.photo_z[
+        self._set_as_rs_member(self.sources_list, self.rs_z[
             color], color, -0.3, 0.6, -1.2,
                                 1.0)
-        # self._set_as_rs_member([source for source in self.sources_list if source.in_location], self.photo_z, color, -0.3, 0.6,
+        # self._set_as_rs_member([source for source in self.sources_list if source.in_location], self.rs_z, color, -0.3, 0.6,
         #                        -1.2, 1.0)
         # Override for lower redshift struture, since there is a higher structure that gets in the way
         # if self.name.startswith("MOO2214"):
-        #     self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.2, 0.2, -1.2, 0.8)
+        #     self._set_as_rs_member(self.sources_list, self.rs_z[color], color, -0.2, 0.2, -1.2, 0.8)
         # if self.name.startswith("MOO1636"):
-        #     self._set_as_rs_member(self.sources_list, self.photo_z[color], color, -0.3, 0.6, -1.6, 1.0)
+        #     self._set_as_rs_member(self.sources_list, self.rs_z[color], color, -0.3, 0.6, -1.6, 1.0)
 
 
         # Plot final redshift on CMD
         if type(plot_figures) is list:
-            plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], self.photo_z[color],
+            plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], self.rs_z[color],
                                                                 "Final Redshift",
                                                                 color_red_sequence=True))
             plot_figures.append(plotting.plot_location(self))
 
-        print self, self.photo_z[color]
+        print self, self.rs_z[color]
 
 
         # self._write_rs_catalog()
@@ -242,6 +240,12 @@ class Cluster(object):
                 else:  # Will be right limit
                     if float(pair[0]) > right_limit:
                         right_limit = float(pair[0])
+
+        # If the limits aren't replaced, set the limits to be nearly at the point.
+        if left_limit == 1.6:
+            left_limit = float(best_z) - 0.005
+        if right_limit == 0.4:
+            right_limit = float(best_z) + 0.005
 
         if type(figs) is list:
             figs.append(plotting.plot_chi_data(self, chi_redshift_pairs, left_limit, best_z, right_limit))

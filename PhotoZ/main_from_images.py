@@ -2,8 +2,8 @@ from PhotoZ.files import SExtractor
 from PhotoZ.files import functions
 from PhotoZ.files import global_paths
 from PhotoZ.files import read_in_catalogs
+from PhotoZ.files import plotting
 import cPickle
-import pyraf
 
 
 # Tell the program where to start
@@ -11,7 +11,7 @@ import pyraf
 # 1: Starts by reading in catalogs, turning the different catalogs into Cluster objects
 # 2: Starts by reading in saved Cluster objects from the specified directory.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 1
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -61,9 +61,10 @@ if START_WITH <= 2:
     # for c in cluster_list:
     #     c.calculate_color()
 
-
 # fit a correction
-# pyraf.
+functions.fit_correction(cluster_list, "r-z", plot=True)
+
+
 
 # TODO: make a function to calibrate catalogs to SDSS, rather than just starting from images. Can base it off of
 # existing calibration function

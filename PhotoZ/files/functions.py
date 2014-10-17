@@ -1,10 +1,12 @@
 from PhotoZ.files import Cluster
+from PhotoZ.files import plotting
+from PhotoZ.files import global_paths
 import os
 import re
 import math
 from matplotlib.backends.backend_pdf import PdfPages
 import ezgal
-import numpy as np
+import numpy.polynomial.polynomial as polynomial
 import cPickle
 from PhotoZ.files import other_classes
 
@@ -143,19 +145,6 @@ def make_cluster_name(filename):
     return "not working"
 
 
-def check_for_slash(path):
-    """Check the given directory for a slash at the end. If it doesn't have one, add it.
-
-    :param path: Path to be checked for a slash.
-    :type path: str
-    :return: corrected path
-    :rtype: str
-    """
-    if path.endswith("/"):
-        return path
-    else:
-        return path + "/"
-
 
 def get_band_from_filename(filename):
     """Finds the band of an image or catalog based on the filename.
@@ -197,7 +186,34 @@ def uJansky_to_AB_mag(uJanksys):
     if uJanksys < 0.0:  # Some fluxes are negative, and that breaks the log function.
         return 9999999.9
     Janskys = uJanksys * (10**(-6))
-    return -2.5*math.log10(Janskys) +8.9
+    return -2.5*math.log10(Janskys) + 8.9
 
 
 # AB to Vega: http://irsa.ipac.caltech.edu/data/COSMOS/tables/scosmos/scosmos_irac_200706_colDescriptions.html
+
+def fit_correction(cluster_list, colors, plot=False):
+    # TODO: document
+    figures = []  # make pycharm happy about not messing with nonexistent variables
+    spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z]
+    spec_zs = [float(c.spec_z) for c in spec_z_clusters]
+    rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
+    weights = [(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2)) for c in spec_z_clusters]
+    # fit a function to the redshifts
+    fit = polynomial.polyfit(spec_zs, rs_zs, 3, w=weights)
+    if plot:
+        figures.append(plotting.plot_z_comparison(cluster_list, colors, fit))
+
+    # correct the redshifts
+    for c in cluster_list:
+        if colors in c.rs_z:
+            x = float(c.rs_z[colors])
+            c.rs_z[colors] = str(x * (x / (fit[0] + fit[1]*x + fit[2]*(x)**2 + fit[3]*(x)**3)))
+
+
+
+    if plot:
+        # Plot corrected redshifts
+        figures.append(plotting.plot_z_comparison(cluster_list, colors, fit))
+        save_as_one_pdf(figures, global_paths.z_comparison_plots)
+
+
