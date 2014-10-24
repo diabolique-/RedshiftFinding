@@ -76,7 +76,7 @@ class Cluster(object):
         initial_z = self._find_initial_redshift(color, plot_bar=True)
 
 
-        bluer_color_cut = [-0.30, -0.25, -0.20]
+        bluer_color_cut = [-0.25, -0.225, -0.20]
         if self.name.startswith("MOO1636"):
             bluer_color_cut = [-0.2, -0.2, -0.2]  # Override to avoid "foregrounds." Not sure if actually foregrounds
         redder_color_cut = [0.4, 0.3, 0.2]
@@ -121,8 +121,8 @@ class Cluster(object):
                 return
 
             # Plot most recent redshift estimate
-            # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
-            #     i+1)))
+            plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
+                i+1)))
 
             chi_redshift_list = self._fit_redshift_to_sample(sample, color, color[-1])
 
@@ -138,7 +138,7 @@ class Cluster(object):
 
         # Make final RS cut, which will be slightly larger than the cut used to identify the RS
         self._set_as_rs_member(self.sources_list, self.rs_z[
-            color], color, -0.3, 0.6, -1.2,
+            color], color, -0.3, 0.6, -1.4,
                                 1.0)
         # self._set_as_rs_member([source for source in self.sources_list if source.in_location], self.rs_z, color, -0.3, 0.6,
         #                        -1.2, 1.0)
@@ -155,6 +155,7 @@ class Cluster(object):
                                                                 "Final Redshift",
                                                                 color_red_sequence=True))
             plot_figures.append(plotting.plot_location(self))
+            pass # again so I can comment out plots if I want
 
         print self, self.rs_z[color]
 

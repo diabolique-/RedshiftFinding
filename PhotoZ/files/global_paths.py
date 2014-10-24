@@ -39,8 +39,7 @@ catalogs_save_directory = check_for_slash(base_directory + "GoogleDrive/Research
 # or a parent directory of it.
 
 # catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/")
-catalogs_look_directory = check_for_slash(
-    "/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/madcows.specz.phot/")
+catalogs_look_directory = check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/")
 
 # catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/IRAC/")
 # catalogs_look_directory = functions.check_for_slash("/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/tes1/")
@@ -60,6 +59,9 @@ z_comparison_plots = base_directory + "GoogleDrive/Research/Plots/z.pdf"
 
 # Place to save all other plots
 plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/Complete.pdf"
+
+# Place to save the correction
+correction_location = "/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/correction.p"
 
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.

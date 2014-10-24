@@ -98,6 +98,7 @@ def make_sdss_catalog(stars_catalog, path):
     command = "select ra,dec,u,g,r,i,z from PhotoObj where ra between %s and %s and dec between %s and %s " \
               "and (u between 17.0 and 20.5 or g between 17.0 and 20.5 or r between 17.0 and 20.5 or i between 17.0 " \
               "and 20.5 or z between 17.0 and 20.5)" %(min_ra, max_ra, min_dec, max_dec)
+     #TODO: only stars
     # and r between 17.0 and 20.5 or z between 17.0 and 20.5
     # That mag cut didn't work when I tried implementing it for some reason
     lines = _call_sdss_sql(command)

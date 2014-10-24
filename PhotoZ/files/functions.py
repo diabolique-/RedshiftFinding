@@ -199,7 +199,7 @@ def fit_correction(cluster_list, colors, plot=False):
     rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
     weights = [(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2)) for c in spec_z_clusters]
     # fit a function to the redshifts
-    fit = polynomial.polyfit(spec_zs, rs_zs, 3, w=weights)
+    fit = polynomial.polyfit(rs_zs, spec_zs, 3)#, w=weights)
     if plot:
         figures.append(plotting.plot_z_comparison(cluster_list, colors, fit))
 
@@ -207,13 +207,16 @@ def fit_correction(cluster_list, colors, plot=False):
     for c in cluster_list:
         if colors in c.rs_z:
             x = float(c.rs_z[colors])
-            c.rs_z[colors] = str(x * (x / (fit[0] + fit[1]*x + fit[2]*(x)**2 + fit[3]*(x)**3)))
+            z = 0
+            for i in range(len(fit)):
+                z += fit[i]*x**i
+            c.rs_z[colors] = str(z)
 
 
 
     if plot:
         # Plot corrected redshifts
-        figures.append(plotting.plot_z_comparison(cluster_list, colors, fit))
+        figures.append(plotting.plot_z_comparison(cluster_list, colors))
         save_as_one_pdf(figures, global_paths.z_comparison_plots)
 
 

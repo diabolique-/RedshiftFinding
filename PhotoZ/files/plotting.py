@@ -178,7 +178,7 @@ def plot_residuals(cluster):
     return fig
 
 
-def plot_z_comparison(clusters, color, fit):
+def plot_z_comparison(clusters, color, fit=None):
     """
     Plot and save the spectroscopic redshift vs calculated photometric redshift.
 
@@ -204,27 +204,30 @@ def plot_z_comparison(clusters, color, fit):
     # # Turn these coefficients into a line
     x = np.arange(0, 1.5, 0.01)
 
-    # turn the fit into something that can be plotted
-    fit_line = 0
-    for coefficient in range(len(fit)):
-        fit_line += fit[coefficient]*x**(coefficient)
+
 
     # Plot everything
     # TODO: make work with lopsided error bars
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(1, 1, 1)
     # Plot points for individual clusters
-    ax.errorbar(spec, photo, yerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
+    ax.errorbar(photo, spec, xerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
     # Plot where the best fit line should be
     ax.plot([0.5, 1.5], [0.5, 1.5], "k-", lw=0.5)
     # Plot the best fit line
-    ax.plot(x, fit_line, "b")
+    if fit is not None:  # If we want to plot the fit
+        # turn the fit into something that can be plotted
+        fit_line = 0
+        for coefficient in range(len(fit)):
+            fit_line += fit[coefficient]*x**(coefficient)
+            # acually plot it
+        ax.plot(x, fit_line, "b")
     # Add a grid, to make for easier viewing
     ax.grid(which="both")
     ax.minorticks_on()
-    ax.set_xlabel("Spectroscopic Redshift")
-    ax.set_ylabel("Photometric Redshift")
-    ax.set_title("Spectroscopic vs Photometric Redshifts")
+    ax.set_ylabel("Spectroscopic Redshift")
+    ax.set_xlabel("Red Sequence Redshift")
+    ax.set_title("Spectroscopic vs Red Sequence Redshifts")
     ax.set_xlim((0.5, 1.5))
     ax.set_ylim((0.5, 1.5))
 
@@ -306,6 +309,8 @@ def plot_location(cluster):
     ax.set_title(cluster.name)
     ax.set_xlabel("RA")
     ax.set_ylabel("Dec")
+    # make ra go from right to left
+    plt.gca().invert_xaxis()
 
     return fig
 

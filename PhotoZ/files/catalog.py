@@ -133,7 +133,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
     except IOError:
         raise other_classes.EndProgramError("Error in read_catalog function. The file to be opened was not found.")
 
-
+    print filepath
 
     # Read all lines in, strip them of whitespace, and split the lines.
     # This will make a list of lists, where each line is a sublist, and
@@ -207,6 +207,7 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
                     # be a comparison operator (<, >, ==, etc). That comparison operator was assigned in the
                     # _parse_filter_string function.
                     # TODO: what is going on here??? Doument his a lot better
+                    # print filter_elements_list[f], line[filter_idx_list[f]], filter_elements_list[f]
                     if not filter_elements_list[f][1](line[filter_idx_list[f]], filter_elements_list[f][2]):
                         break  # It failed a filter test, and the break will skip the else clause, where we add this
                                     # to the table.

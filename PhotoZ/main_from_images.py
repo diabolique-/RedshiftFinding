@@ -11,7 +11,7 @@ import cPickle
 # 1: Starts by reading in catalogs, turning the different catalogs into Cluster objects
 # 2: Starts by reading in saved Cluster objects from the specified directory.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 2
+START_WITH = 0
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -63,6 +63,9 @@ if START_WITH <= 2:
 
 # fit a correction
 functions.fit_correction(cluster_list, "r-z", plot=True)
+
+# TODO: look at clusters that calibration doens't work for. Use the crossID thing in SDSS to see if there really
+# aren't stars there.
 
 
 
