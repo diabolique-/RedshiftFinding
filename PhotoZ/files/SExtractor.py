@@ -131,10 +131,8 @@ def _create_catalogs(detection_image, measurement_image):
     # find the band of the SExtractor catalog, so we know what to calibrate
     band = functions.get_band_from_filename(sex_catalog_path.split("/")[-1])
 
-    print band, sex_catalog_name
-
     # Read the sdss catalog
-    sdss_catalog = catalog.read_catalog(sdss_catalog_path, ["ra", "dec", band], label_type="s", label_row=0)
+    sdss_catalog = catalog.read_catalog(sdss_catalog_path, ["ra", "dec", band], label_type="s", label_row=1)
 
     # Each line is a source, so turn both the SExtractor and SDSS catalogs into source objects
     # TODO: CHECT THAT THESE ARE THE RIGHT COLUMNS TO READ IN

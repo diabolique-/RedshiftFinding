@@ -1,4 +1,4 @@
-import urllib
+import mechanize
 import os.path
 from PhotoZ.files import catalog
 from PhotoZ.files import functions
@@ -70,13 +70,34 @@ def find_match(source, source_list):
         return None
 
 
-def _call_sdss_sql(command, format="csv"):
+def _call_sdss_sql(command, data_format="csv"):
 
-    url = 'http://cas.sdss.org/public/en/tools/search/x_sql.asp?'
+    # url = 'http://skyserver.sdss3.org/public/en/tools/search/x_sql.asp?'
+    # url = 'http://skyserver.sdss.org/public/en/tools/search/sql.aspx'
+    import mechanize
 
-    params = urllib.urlencode({'cmd': command, 'format': format})
-    my_file = urllib.urlopen(url + params)
-    return my_file.readlines()
+    url = "http://skyserver.sdss3.org/dr10/en/tools/search/sql.aspx"
+
+    # open a broswer instance
+    br = mechanize.Browser()
+    # open the SDSS url
+    br.open(url)
+
+    # select the form corresponding to the place to write the command, and make the command be in there.
+    br.select_form(name='sql')
+    br['cmd'] = command
+    # select the correct format, too
+    br['format'] = [data_format]
+
+    response = br.submit()
+
+    return response.get_data()
+
+    # Simple, but broken. Not sure why.
+    # url = 'http://skyserver.sdss3.org/dr10/en/tools/search/sql.aspx'
+    # params = urllib.urlencode({'cmd': command, 'format': data_format})
+    # my_file = urllib.urlopen(url + params)
+    # return my_file.readlines()
 
 def make_sdss_catalog(stars_catalog, path):
 
@@ -101,8 +122,9 @@ def make_sdss_catalog(stars_catalog, path):
      #TODO: only stars
     # and r between 17.0 and 20.5 or z between 17.0 and 20.5
     # That mag cut didn't work when I tried implementing it for some reason
-    lines = _call_sdss_sql(command)
-    lines = [line.strip().split(",") for line in lines]
+    data = _call_sdss_sql(command)
+
+    lines = [line.strip().split(",") for line in data.split()]
 
     # Check that there are actually objects returned.
     if lines[0][0].startswith("No objects"):

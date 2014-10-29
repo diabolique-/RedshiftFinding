@@ -133,7 +133,6 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
     except IOError:
         raise other_classes.EndProgramError("Error in read_catalog function. The file to be opened was not found.")
 
-    print filepath
 
     # Read all lines in, strip them of whitespace, and split the lines.
     # This will make a list of lists, where each line is a sublist, and
