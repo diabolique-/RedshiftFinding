@@ -27,8 +27,7 @@ images_directory = check_for_slash(base_directory + "Astro/RS_finding/Data/Image
 # SExtractor will run from here. This directory should hold the .sex and .param files that SExtractor uses
 sextractor_params_directory = check_for_slash(base_directory + "GoogleDrive/Research/SExtractor_files/")
 # Config files sextractor will use for different bands
-r_config_file = sextractor_params_directory + "r.sex"
-z_config_file = sextractor_params_directory + "z.sex"
+gemini_config_file = sextractor_params_directory + "gemini.sex"
 
 
 # Where the SExtractor catalogs will be. The code will move the created files here, to reduce clutter in the

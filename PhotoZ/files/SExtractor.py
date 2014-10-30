@@ -1,6 +1,7 @@
 import os
 import subprocess
 import matplotlib.pyplot as plt
+from astropy.io import fits
 from PhotoZ.files import functions
 from PhotoZ.files import global_paths
 from PhotoZ.files import SExtractor_functions
@@ -80,16 +81,19 @@ def _create_catalogs(detection_image, measurement_image):
     """
     # Determine which .sex file to use
     config_file = None # initialization to make PyCharm happy.
-    if functions.get_band_from_filename(measurement_image) == "r":
-        config_file = global_paths.r_config_file
-    elif functions.get_band_from_filename(measurement_image) == "z":
-        config_file = global_paths.z_config_file
+    if functions.get_band_from_filename(measurement_image) in ["r", "z"]:  # way to test both r and z bands at once
+        config_file = global_paths.gemini_config_file
     else:
         other_classes.EndProgramError("The _create_catalogs function for r and z bands was passed an image that isn't r "
                                       "or z. Something is wrong", measurement_image)
 
     # Get the default zeropoint from the file
     zero_point = SExtractor_functions.find_zeropoint(config_file)
+
+    # find the FWHM
+    fwhm = get_fwhm(measurement_image)
+
+    # TODO: get the FWHM (probably from SExtractor) if the FWHM isn't in the image header.
 
 
     # Determine the name of the catalog. Will be of the form Filename_band.cat
@@ -99,7 +103,7 @@ def _create_catalogs(detection_image, measurement_image):
     sex_catalog_path = global_paths.catalogs_save_directory + sex_catalog_name
 
     # Run SExtractor once before the calibration loop, to get a baseline before calibration
-    _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
+    _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), fwhm, sex_catalog_path)
 
     # TODO: somewhere down the road, do aperture corrections. These are neccesary for calibrating
     #  optical to IR mags.
@@ -152,10 +156,9 @@ def _create_catalogs(detection_image, measurement_image):
     else:  # calibration did work, so change the zero point to the calibrated value
         zero_point += zero_point_change
 
-        # TODO: READ IN BEST FWHM SOMEHOW, AND PUT THAT INTO CONSIDERATION TOO. THAT MIGHT FIX SOME THINGS
 
     # rerun SExtractor with this new calibrated zeropoint
-    _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), sex_catalog_path)
+    _run_sextractor(detection_image, measurement_image, config_file, str(zero_point), fwhm, sex_catalog_path)
     # This should result in a calibrated catalog.
 
     # We want user input on whether the calibration is good or not. Showing a plot will be the best way
@@ -225,7 +228,7 @@ def _create_catalogs(detection_image, measurement_image):
 
 # TODO: do I need to make separate r-z function, or can I make a general SExtractor function?
 
-def _run_sextractor(detection_image, measurement_image, sex_file, zeropoint, catalog_path):
+def _run_sextractor(detection_image, measurement_image, sex_file, zeropoint, fwhm, catalog_path):
     """Run SExtractor from the command line on the given images.
 
     Runs in dual image mode. If single image mode is wanted, set both as the same. The .sex configuration file needs
@@ -239,6 +242,8 @@ def _run_sextractor(detection_image, measurement_image, sex_file, zeropoint, cat
     :type sex_file: str
     :param zeropoint: zeropoint for SExtractor magnitudes.
     :type zeropoint: str
+    :param fwhm: full width half max of the image.
+    :type fwhm: str
     :param catalog_path: path where the resulting SExtractor catalog will be stored.
     :type catalog_path: str
     :return: None, but the resulting catalog is saved to disk (by SExtractor)
@@ -262,8 +267,8 @@ def _run_sextractor(detection_image, measurement_image, sex_file, zeropoint, cat
     # subprocess.call puts things in command line (like terminal). Things have to be a list. It will put spaces
     # in between each item in the list when it actually does the command.
     subprocess.call([sex, detection_image, measurement_image, "-c", sex_file, "-CATALOG_NAME", catalog_path,
-                     "-MAG_ZEROPOINT", zeropoint], stdout=temp)  # stdout is the pipe we just made, meaning that
-                     # nothing is printed.
+                     "-MAG_ZEROPOINT", zeropoint, "-SEEING_FWHM", fwhm], stdout=temp)  # stdout is the pipe we just
+                     # made, meaning that nothing is printed.
 
 
 
@@ -329,3 +334,17 @@ def _find_r_and_z_images(images):
             other_classes.EndProgramError("An image was passed in with a band I can't do anything with.", image_path)
         # TODO: put [3.6] and [4.5] in this when if I ever run things from IRAC images.
     return r_image, z_image
+
+def get_fwhm(image_path):
+
+    fits_file = fits.open(image_path)
+    try:
+        fwhm = str(fits_file[0].header["FWHMPSF"])
+    except KeyError:
+        print image_path.split("/")[-1] + " does not have a FWHM in the .fits header. FWHM set at 0.9 arcseconds."
+        # Get the FWHM from somewhere else
+        # Don't know where to get it from at the moment, so I'll pick something that would be bad seeing. I'll also
+        # make it something that can be identified easily, so I can identify it later to potentially replace it.
+        fwhm = "0.7110011001100110011001100"
+    fits_file.close()
+    return fwhm

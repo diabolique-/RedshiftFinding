@@ -74,7 +74,7 @@ def _call_sdss_sql(command, data_format="csv"):
 
     # url = 'http://skyserver.sdss3.org/public/en/tools/search/x_sql.asp?'
     # url = 'http://skyserver.sdss.org/public/en/tools/search/sql.aspx'
-    import mechanize
+
 
     url = "http://skyserver.sdss3.org/dr10/en/tools/search/sql.aspx"
 
@@ -118,10 +118,8 @@ def make_sdss_catalog(stars_catalog, path):
     # Create command using templates. Basically, the things at the end replace the %s each time. The s indicates string.
     command = "select ra,dec,u,g,r,i,z from PhotoObj where ra between %s and %s and dec between %s and %s " \
               "and (u between 17.0 and 20.5 or g between 17.0 and 20.5 or r between 17.0 and 20.5 or i between 17.0 " \
-              "and 20.5 or z between 17.0 and 20.5)" %(min_ra, max_ra, min_dec, max_dec)
-     #TODO: only stars
-    # and r between 17.0 and 20.5 or z between 17.0 and 20.5
-    # That mag cut didn't work when I tried implementing it for some reason
+              "and 20.5 or z between 17.0 and 20.5) and type=6" %(min_ra, max_ra, min_dec, max_dec)
+
     data = _call_sdss_sql(command)
 
     lines = [line.strip().split(",") for line in data.split()]
