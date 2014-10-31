@@ -62,5 +62,11 @@ plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/Complete.pdf"
 # Place to save the correction
 correction_location = "/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/correction.p"
 
+# location to save the resulting .txt file with redshifts to
+results = base_directory + "GoogleDrive/Research/Plots/results.txt"
+
+# Place to store resulting catalogs of sources that are or are not RS members
+rs_catalogs = check_for_slash(base_directory + "GoogleDrive/Research/Data/RS_catalogs/")
+
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.

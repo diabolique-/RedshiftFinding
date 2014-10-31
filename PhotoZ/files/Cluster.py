@@ -1,7 +1,8 @@
 from PhotoZ.files import plotting
 from PhotoZ.files import predictions
-import numpy as np
 import math
+from PhotoZ.files import global_paths
+
 
 class Cluster(object):
     """
@@ -29,6 +30,8 @@ class Cluster(object):
         self.ch1_data = False
         self.ch2_data = False
         self.rs_z = dict()
+        self.upper_photo_z_error = dict()
+        self.lower_photo_z_error = dict()
 
     def __repr__(self):  # how the object appears when printed
         return self.name
@@ -59,26 +62,25 @@ class Cluster(object):
         """
         # Find a good starting redshift to base the rest of the work on, and set RS membership
 
-
-
         # if type(plot_figures) is list:
         #     plot_figures.append(plotting.plot_color_mag(self, predictions=False, color=color, band=color[-1]))
 
         if "z" not in self.name:
-            if self.name == "MOO0037+3306" or self.name == "MOO0105+1323":
-                self._find_xy_cut(750)  # TODO: write better cut function
-            else:
-                # plot_figures.append(self._find_location_cut())
-                self._find_location_cut(1.5)
+            # if self.name == "MOO0037+3306" or self.name == "MOO0105+1323":
+            #     pass
+            #     # self._find_xy_cut(750)  # TODO: write better cut function
+            # else:
+            #     # plot_figures.append(self._find_location_cut())
+            self._find_location_cut(1.5)
 
 
 
-        initial_z = self._find_initial_redshift(color, plot_bar=True)
+        initial_z = self._find_initial_redshift(color, plot_bar=False)
 
 
         bluer_color_cut = [-0.25, -0.225, -0.20]
-        if self.name.startswith("MOO1636"):
-            bluer_color_cut = [-0.2, -0.2, -0.2]  # Override to avoid "foregrounds." Not sure if actually foregrounds
+        # if self.name.startswith("MOO1636"):
+        #     bluer_color_cut = [-0.2, -0.2, -0.2]  # Override to avoid "foregrounds." Not sure if actually foregrounds
         redder_color_cut = [0.4, 0.3, 0.2]
         brighter_mag_cut = -1.4
         dimmer_mag_cut = 0.6
@@ -121,8 +123,8 @@ class Cluster(object):
                 return
 
             # Plot most recent redshift estimate
-            plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
-                i+1)))
+            # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
+            #     i+1)))
 
             chi_redshift_list = self._fit_redshift_to_sample(sample, color, color[-1])
 
@@ -133,8 +135,8 @@ class Cluster(object):
 
         # Set cluster attributes, now that the process is complete
         self.rs_z[color] = best_z
-        self.upper_photo_z_error = z_upper_error
-        self.lower_photo_z_error = z_lower_error
+        self.upper_photo_z_error[color] = z_upper_error
+        self.lower_photo_z_error[color] = z_lower_error
 
         # Make final RS cut, which will be slightly larger than the cut used to identify the RS
         self._set_as_rs_member(self.sources_list, self.rs_z[
@@ -151,16 +153,17 @@ class Cluster(object):
 
         # Plot final redshift on CMD
         if type(plot_figures) is list:
-            plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], self.rs_z[color],
-                                                                "Final Redshift",
-                                                                color_red_sequence=True))
-            plot_figures.append(plotting.plot_location(self))
+            # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], self.rs_z[color],
+            #                                                     "Final Redshift",
+            #                                                     color_red_sequence=True))
+            # plot_figures.append(plotting.plot_location(self))
             pass # again so I can comment out plots if I want
 
+        self._write_rs_catalog()
         print self, self.rs_z[color]
 
 
-        # self._write_rs_catalog()
+
 
 
     def _find_initial_redshift(self, color, plot_bar=True):
@@ -174,6 +177,7 @@ class Cluster(object):
         :param plot_bar: Whether or not to make a bar graph showing the number of galaxies near each redshift.
         :return: best fitting redshift.
         """
+        # TODO: I don't know if I really need to do this. I could just do fitting without this starting poitn
         # Initialize empty lists, will append as we go
         galaxies_list = []
         z_list = []
@@ -359,13 +363,37 @@ class Cluster(object):
                 source.in_location = False
 
     def _write_rs_catalog(self):
-        # TODO: Document
-        # write red sequence catalog to file
-        rs_catalog = open("/Users/gbbtz7/GoogleDrive/Research/Data/ClusterData/RS_catalogs/" + self.name[:-1] +
-                          "_rs_members.phot.dat", "w")
-        rs_catalog.write("# id    ra            dec          zmag     rmz    rmze\n")
+        # TODO: document
+        # open the file for writing
+        rs_catalog = open(global_paths.rs_catalogs + self.name + "_rs_members.cat", "w")
+
+        # create the labels at the top (with fixed widths)
+        rs_catalog.write("{:13s} {:13s}".format("#ra", "dec"))
+        # Only include labels for bands if the cluster actually has data in that band
+        if self.r_data:
+            rs_catalog.write("{:10s} {:8s}".format("r_mag", "r_err"))
+        if self.z_data:
+            rs_catalog.write("{:10s} {:8s}".format("z_mag", "z_err"))
+        rs_catalog.write("rs_member\n")
+
+        # Iterate through the sources in the cluster, and put their data in the file too.
         for source in self.sources_list:
+            rs_catalog.write("{:13s} {:13s}".format(str(source.ra), str(source.dec)))
+            if self.r_data:
+                try:
+                    rs_catalog.write("{:10s} {:8s}".format(str(source.mags["r"].value), str(round(source.mags[
+                                                                                                "r"].error, 4))))
+                except KeyError:
+                    rs_catalog.write("{:10s} {:8s}".format(" ", " "))
+            if self.z_data:
+                try:
+                    rs_catalog.write("{:10s} {:8s}".format(str(source.mags["z"].value), str(round(source.mags[
+                                                                                                "z"].error, 4))))
+                except KeyError:
+                    rs_catalog.write("{:10s} {:8s}".format(" ", " "))
             if source.RS_member:
-                rs_catalog.write(str(source.id) + "    " + str(source.ra) + "    " + str(source.dec) + "    " + str(source.mag) +
-                                 "    " + str(source.color) + "    " + str(source.color_error) + "\n")
+                rs_catalog.write("1")
+            else:
+                rs_catalog.write("0")
+            rs_catalog.write("\n")
         rs_catalog.close()

@@ -27,10 +27,7 @@ def sextractor_main(image_paths):
     # Initialize list of figures to be filled as needed
     figures = []
     # We want to run everything on all the clusters, so iterate through them all
-    print len(grouped_images)
-    counter = 1
     for cluster in grouped_images:
-        print counter
         # Select the r and z band images in each pair. That is what will be used for now.
         r_image, z_image = _find_r_and_z_images(cluster)
 
@@ -40,7 +37,6 @@ def sextractor_main(image_paths):
             print "Both r and z images were not found for a cluster. Here are the paths for the images that were found:"
             for path in cluster:
                 print path
-            other_classes.EndProgramError("Exiting.")
         else:  # did find r and z images
             # Now we can do the SExtractor work on the r and z images
             for measurement_image in [z_image, r_image]:
@@ -60,7 +56,6 @@ def sextractor_main(image_paths):
                 else: # did work, and therefore returned a figure
                     figures.append(figure)
                 # TODO: can also adjust FWHM from SExtractor catalog information
-        counter += 1
 
     # save the multipage pdf file
     functions.save_as_one_pdf(figures, global_paths.calibration_plots)
@@ -139,14 +134,13 @@ def _create_catalogs(detection_image, measurement_image):
     sdss_catalog = catalog.read_catalog(sdss_catalog_path, ["ra", "dec", band], label_type="s", label_row=1)
 
     # Each line is a source, so turn both the SExtractor and SDSS catalogs into source objects
-    # TODO: CHECT THAT THESE ARE THE RIGHT COLUMNS TO READ IN
+    # TODO: CHECK THAT THESE ARE THE RIGHT COLUMNS TO READ IN
     sdss_sources = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]], mag_errors=[0])
                     for line in sdss_catalog]
     sex_sources = [other_classes.Source(line[2], line[3], mag_bands=[band], mags=[line[0]], mag_errors=[line[1]])
                    for line in sex_stars]
 
     # Now find the best zero point for these sources
-    # TODO: this might be minus
     zero_point_change = sdss_calibration.sdss_calibration(sex_sources, sdss_sources, band)
     # Check to see that the zero-point didn't return False.
     if zero_point_change is False:
@@ -181,6 +175,7 @@ def _create_catalogs(detection_image, measurement_image):
                 pairs.append((source, match))
         if len(pairs) == 0:
             # remove the SExtractor catalog, since it couldn't be calibrated properly
+            print functions.make_cluster_name(sex_catalog_path.split("/")[-1]) + " could not be calibrated properly. No sources matched SDSS sources."
             os.remove(sex_catalog_path)
             return False  # calibration didn't work
         # Initialize lists to be filled with data points
@@ -205,6 +200,12 @@ def _create_catalogs(detection_image, measurement_image):
         if len(sdss_mags) == 0 or len(mag_differences) == 0 or len(mag_errors) == 0:
             # remove the SExtractor catalog, since it couldn't be calibrated properly
             os.remove(sex_catalog_path)
+            print functions.make_cluster_name(sex_catalog_path.split("/")[-1]) + " could not be calibrated properly. " \
+                                                                                "No " \
+                                                                             "sources " \
+                                                                   "matched SDSS " \
+                                                   "sources. This is the " \
+                                    "second time, though, so something is probably wrong."
             return False
 
         ax.errorbar(sdss_mags, mag_differences, mag_errors, fmt=".", c="k")
@@ -336,12 +337,12 @@ def _find_r_and_z_images(images):
     return r_image, z_image
 
 def get_fwhm(image_path):
-
+    #TODO: document
     fits_file = fits.open(image_path)
     try:
         fwhm = str(fits_file[0].header["FWHMPSF"])
     except KeyError:
-        print image_path.split("/")[-1] + " does not have a FWHM in the .fits header. FWHM set at 0.9 arcseconds."
+        print image_path.split("/")[-1] + " does not have a FWHM in the .fits header. FWHM set at ~0.7 arcseconds."
         # Get the FWHM from somewhere else
         # Don't know where to get it from at the moment, so I'll pick something that would be bad seeing. I'll also
         # make it something that can be identified easily, so I can identify it later to potentially replace it.

@@ -5,13 +5,8 @@ import os
 import re
 import math
 from matplotlib.backends.backend_pdf import PdfPages
-import ezgal
 import numpy.polynomial.polynomial as polynomial
-import cPickle
-from PhotoZ.files import other_classes
-
-
-# TODO: make read catalogs function, should work for both SExtractor and SDSS
+import matplotlib.pyplot as plt
 
 
 def find_all_objects(enclosing_directory, extensions, files_list):
@@ -42,21 +37,12 @@ def find_all_objects(enclosing_directory, extensions, files_list):
 
     return files_list
     # We technically don't need to return files_list, since changes in it will be reflected in the main program,
-    # but often the user will just pass in2 an empty list without assigning it first. In this case, we need to return
+    # but often the user will just pass in an empty list without assigning it first. In this case, we need to return
     # something.
 
 
-# Make sure that it does SExtractor on the images, with the correct parameters (including saving them to the right
-# place), calibration, and correct naming conventions for the file (has to contain the band in the spot that
-# read_sextractor_catalogs will look. I want each image to have its own SExtrator .sex file, for easier adjustments
-# of zero point. Although I'm not sure
-# TODO: think about whether I want each cluster to have its own .sex file or not.
-
-# TODO: make a function to do calibrations (Sloan, whatever IRAC needs)
-
-
 def _determine_which_cluster(clusters_list, catalog_name):
-    # TODO: document once I can verify that this works.
+    # TODO: document
     name = make_cluster_name(catalog_name)
 
     for c in clusters_list:
@@ -66,7 +52,6 @@ def _determine_which_cluster(clusters_list, catalog_name):
     # Since we got this far, we know it's not in the list. We now initialize a new cluster object with empty
     clusters_list.append(Cluster.Cluster(name, []))
     return clusters_list[-1]
-    #TODO: Verify that this works! I'm pretty sure it will, but not 100%.
     # May need to do this instead.
     # # Now can check again.
     # for c in clusters_list:
@@ -85,10 +70,7 @@ def make_cluster_name(filename):
     :rtype: str
     """
 
-    # TODO: make the catalogs I was first given easily distinguishable from the other ones. I want them to be
-    # different, so I can compare them to the ones my code makes from SExtractor.
     name = filename
-
 
     # First look for something of the form m####p####
     known_catalogs = re.compile("m[0-9]{4}(p|m)[0-9]{4}[.]phot[.]dat")
@@ -180,6 +162,8 @@ def save_as_one_pdf(figs, filename):
     for fig in figs:
         pp.savefig(fig)
     pp.close()
+    for fig in figs:
+        plt.close(fig)
 
 def uJansky_to_AB_mag(uJanksys):
     # Convert to erg cm^-2 s^-1 Hz^-1, where 1 Jansky = 10^-23 erg cm^-2 s^-1 Hz^-1
@@ -197,7 +181,7 @@ def fit_correction(cluster_list, colors, plot=False):
     spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z]
     spec_zs = [float(c.spec_z) for c in spec_z_clusters]
     rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
-    weights = [(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2)) for c in spec_z_clusters]
+    weights = [(1.0 / ((c.upper_photo_z_error[colors] + c.lower_photo_z_error[colors])/2)) for c in spec_z_clusters]
     # fit a function to the redshifts
     fit = polynomial.polyfit(rs_zs, spec_zs, 3)#, w=weights)
     if plot:
@@ -210,7 +194,7 @@ def fit_correction(cluster_list, colors, plot=False):
             z = 0
             for i in range(len(fit)):
                 z += fit[i]*x**i
-            c.rs_z[colors] = str(z)
+            c.rs_z[colors] = str(round(z, 2))
 
 
 
@@ -219,4 +203,17 @@ def fit_correction(cluster_list, colors, plot=False):
         figures.append(plotting.plot_z_comparison(cluster_list, colors))
         save_as_one_pdf(figures, global_paths.z_comparison_plots)
 
+def write_results(clusters):
+    # TODO: document
+    # open file for writing
+    f = open(global_paths.results, 'w')
 
+    # write headings for the file
+    f.write("{:23s} {:6s} {:5s} {:7s} {:7s} {:6s}\n".format("cluster", "color", "z", "up err", "low err", "spec z"))
+
+    for c in clusters:
+        for color in c.rs_z:
+            f.write("{:23s} {:6s} {:5s} {:7s} {:7s} {:6s}\n".format(c.name, color, c.rs_z[color],
+                                                                  str(c.upper_photo_z_error[
+                color]), str(c.lower_photo_z_error[color]), str(c.spec_z)))
+    f.close()

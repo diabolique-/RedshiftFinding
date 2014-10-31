@@ -1,10 +1,5 @@
 import mechanize
-import os.path
-from PhotoZ.files import catalog
 from PhotoZ.files import functions
-from PhotoZ.files import global_paths
-from PhotoZ.files import other_classes
-import matplotlib.pyplot as plt
 import numpy as np
 
 def sdss_calibration(sex_sources, sdss_sources, band):

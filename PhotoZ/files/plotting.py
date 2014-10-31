@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol
 import matplotlib.cm as cmx
-import numpy.polynomial.polynomial as polynomial
 import numpy as np
 
 # TODO: document
@@ -193,11 +192,11 @@ def plot_z_comparison(clusters, color, fit=None):
         if c.spec_z and color in c.rs_z:  # Can't plot comparison if the cluster doesn't have a spectroscopic redshift
             spec.append(float(c.spec_z))
             photo.append(float(c.rs_z[color]))
-            lower_photo_err.append(c.lower_photo_z_error)
-            upper_photo_err.append(c.upper_photo_z_error)
+            lower_photo_err.append(c.lower_photo_z_error[color])
+            upper_photo_err.append(c.upper_photo_z_error[color])
             # weights.append(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2))  # Average the errors
             # TODO: Find a better way to do the weighting for the fit. Simple averaging of the errors is WRONG.
-    total_error = [lower_photo_err, upper_photo_err]
+    total_error = [lower_photo_err, upper_photo_err]  # goes into the lopsided error bars
 
     # # Find the best fit line
     # fit = polynomial.polyfit(spec, photo, 1, w=weights)  # returns coefficients of a linear fit
