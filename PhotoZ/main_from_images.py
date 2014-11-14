@@ -9,6 +9,8 @@ import cPickle
 # 0: will run everything. Starts with doing SExtractor in the images in the directory specified.
 # 1: Starts by reading in catalogs, turning the different catalogs into Cluster objects
 # 2: Starts by reading in saved Cluster objects from the specified directory.
+# 3: Starts by reading in saved Cluster list after it has finished, so they all have redshifts. There is still the
+#       correction to be done.
 # TODO: write better comments up here for where to start things, once I finish the program.
 START_WITH = 2
 
@@ -43,20 +45,18 @@ if START_WITH == 2:
 
 if START_WITH <= 2:
     print "\nStarting redshift fitting.\n"
-    # for c in cluster_list:
-    #     for s in c.sources_list:
-    #         print s.mags, s.colors
-    figs = None
+
     # find the red sequence redshifts
     for c in cluster_list:
         if c.r_data and c.z_data:
-            c.fit_z("r-z", plot_figures=figs)
-    # figures = [c.fit_z("r-z", plot_figures=figs) for c in cluster_list if c.r_data and c.z_data]
-    if figs:
-        functions.save_as_one_pdf(figs, global_paths.plots)
-     # Do color calculations
-    # for c in cluster_list:
-    #     c.calculate_color()
+            c.fit_z("r-z", plot_figures=True)
+
+    # save cluster list to disk
+    cPickle.dump(cluster_list, open(global_paths.finished_pickle_file, 'w'), -1)
+    # TODO: save each plot individually after it is done. I don't want a huge list anymore.
+
+if START_WITH == 3:
+    cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
 
 # fit a correction
 functions.fit_correction(cluster_list, "r-z", plot=True)

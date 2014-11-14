@@ -75,7 +75,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     # Change the scale to match Stanford 14. Each filter set will be different
     if color == "r-z":
         color_mag_ax.set_xlim([20, 23.5])  # should be [20, 23.5] Changed to see high redshift better
-        # color_mag_ax.set_xlim([18, 26])
+        # color_mag_ax.set_xlim([20, 26])
         color_mag_ax.set_ylim([0, 3.5])
     elif color == "i-ch1":
         color_mag_ax.set_xlim([18, 21.5])
@@ -177,7 +177,7 @@ def plot_residuals(cluster):
     return fig
 
 
-def plot_z_comparison(clusters, color, fit=None):
+def plot_z_comparison(clusters, color, fit=None, label=None):
     """
     Plot and save the spectroscopic redshift vs calculated photometric redshift.
 
@@ -212,7 +212,7 @@ def plot_z_comparison(clusters, color, fit=None):
     # Plot points for individual clusters
     ax.errorbar(photo, spec, xerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
     # Plot where the best fit line should be
-    ax.plot([0.5, 1.5], [0.5, 1.5], "k-", lw=0.5)
+    ax.plot([0.5, 2.5], [0.5, 2.5], "k-", lw=0.5)
     # Plot the best fit line
     if fit is not None:  # If we want to plot the fit
         # turn the fit into something that can be plotted
@@ -221,6 +221,12 @@ def plot_z_comparison(clusters, color, fit=None):
             fit_line += fit[coefficient]*x**(coefficient)
             # acually plot it
         ax.plot(x, fit_line, "b")
+    # label the data points with the cluster name
+    if label:
+        for c in clusters:
+            if c.spec_z and color in c.rs_z:
+                xy = (c.rs_z[color], c.spec_z)
+                ax.annotate(s=c.name, xy=xy, xytext=(0,-7), textcoords="offset points", size=4, rotation='vertical')
     # Add a grid, to make for easier viewing
     ax.grid(which="both")
     ax.minorticks_on()
@@ -255,6 +261,7 @@ def plot_initial_redshift_finding(cluster, z_list, galaxies_list, best_z):
     bar_ax.axvline(x=cluster.spec_z, c="r", lw=4)
     bar_ax.axvline(x=best_z, c="k", lw=4)
     plt.savefig("/Users/gbbtz7/GoogleDrive/Research/Plots/InitialZ/" + cluster.name + "_histo.pdf", format="pdf")
+    plt.close(bar_fig)
 
 
 def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, color_red_sequence=True):

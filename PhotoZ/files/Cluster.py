@@ -1,4 +1,5 @@
 from PhotoZ.files import plotting
+from PhotoZ.files import functions
 from PhotoZ.files import predictions
 import math
 from PhotoZ.files import global_paths
@@ -20,7 +21,18 @@ class Cluster(object):
         if spec_z:
             self.spec_z = spec_z
         else:
-            self.spec_z = None
+            # compare the name against a known list of redshifts, to see if it is known.
+            redshifts = {"MOO0012+1602": "0.94", "MOO0024+3303": "1.11", "MOO0125+1344": "1.12",
+             "MOO0130+0922": "1.15", "MOO0133-1057": "0.96", "MOO0212-1813": "1.09", "MOO0224-0620": "0.81",
+             "MOO0245+2018": "0.76", "MOO0319-0025": "1.19", "MOO1155+3901": "1.01", "MOO1210+3154": "1.05",
+             "MOO1319+5519": "0.94", "MOO1335+3004": "0.98", "MOO1514+1346": "1.06", "MOO1625+2629": "1.20",
+             "MOO2205-0917": "0.93", "MOO2320-0620": "0.92", "MOO2348+0846": "0.89", "MOO2355+1030": "1.27"}
+            if "catalog" in self.name: # To handle duplicate clusters that I have named with catalog
+                self.spec_z = redshifts[self.name.split()[0]]
+            elif self.name in redshifts: # will handle normal clusters
+                self.spec_z = redshifts[self.name]
+            else:
+                self.spec_z = None
 
         self.sources_list = sources_list
 
@@ -50,7 +62,7 @@ class Cluster(object):
     #######################################
 
 
-    def fit_z(self, color, plot_figures=None):
+    def fit_z(self, color, plot_figures=False):
         """Find the redshift of the cluster by matching its red sequence to the models.
         Basically works as the main function for this process. Other functions are called to do the dirty work.
 
@@ -60,23 +72,34 @@ class Cluster(object):
                              If no plotting is desired, leave the parameter blank (i.e. pass nothing in).
         :return: None, but the instance variables for photometric redshift and photo z error are set inside.
         """
+
+        # initialize list to append figures to
+        figures_list = []
         # Find a good starting redshift to base the rest of the work on, and set RS membership
 
-        # if type(plot_figures) is list:
-        #     plot_figures.append(plotting.plot_color_mag(self, predictions=False, color=color, band=color[-1]))
-
         if "z" not in self.name:
-            # if self.name == "MOO0037+3306" or self.name == "MOO0105+1323":
-            #     pass
-            #     # self._find_xy_cut(750)  # TODO: write better cut function
-            # else:
-            #     # plot_figures.append(self._find_location_cut())
-            self._find_location_cut(1.5)
+            if self.name == "MOO0037+3306" or self.name == "MOO0105+1323":
+                pass
+                # self._find_xy_cut(750)  # TODO: write better cut function
+            else:
+                self._find_location_cut(1.5)  # To do no plotting
 
 
 
-        initial_z = self._find_initial_redshift(color, plot_bar=False)
+        initial_z = self._find_initial_redshift(color, plot_bar=True)
 
+        # set red sequence cut based on the initial redshift
+        self._set_as_rs_member(self.sources_list, initial_z, color, -0.1, 0.1, -1.2, 0.5)
+
+        # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
+        if plot_figures:
+            # Plot with predictions
+            figures_list.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
+                                                        distinguish_red_sequence=False))
+            # Plot the initial cut with RS based on the initial cut
+            figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
+                                                                "Fitting", color_red_sequence=True))
+            pass  # So when I comment all the plots out it still runs
 
         bluer_color_cut = [-0.25, -0.225, -0.20]
         # if self.name.startswith("MOO1636"):
@@ -86,24 +109,9 @@ class Cluster(object):
         dimmer_mag_cut = 0.6
 
 
+
         self._set_as_rs_member(self.sources_list, initial_z, color, bluer_color_cut[0], redder_color_cut[0],
                                brighter_mag_cut, dimmer_mag_cut)
-
-
-
-        # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
-        if type(plot_figures) is list:
-            # Plot with predictions
-            # plot_figures.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
-            #                                             distinguish_red_sequence=False))
-            # # Plot the initial cut with RS based on the initial cut
-            # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
-            #                                                     "Fitting", color_red_sequence=False))
-            # # Plot location of initial cut
-            # plot_figures.append(plotting.plot_location(self))
-            pass  # So when I comment all the plots out it still runs
-
-
 
         # Want to do three decreasing sized color cuts around the best fit redshift so far, to gradually hone in on
         # the correct redshift.
@@ -123,8 +131,8 @@ class Cluster(object):
                 return
 
             # Plot most recent redshift estimate
-            # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
-            #     i+1)))
+            figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
+                i+1)))
 
             chi_redshift_list = self._fit_redshift_to_sample(sample, color, color[-1])
 
@@ -152,14 +160,18 @@ class Cluster(object):
 
 
         # Plot final redshift on CMD
-        if type(plot_figures) is list:
-            # plot_figures.append(plotting.plot_fitting_procedure(self, color, color[-1], self.rs_z[color],
-            #                                                     "Final Redshift",
-            #                                                     color_red_sequence=True))
-            # plot_figures.append(plotting.plot_location(self))
+        if plot_figures:
+            figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], self.rs_z[color],
+                                                                "Final Redshift", color_red_sequence=True))
+            figures_list.append(plotting.plot_location(self))
             pass # again so I can comment out plots if I want
 
         self._write_rs_catalog()
+
+        # Save the plots
+        functions.save_as_one_pdf(figures_list, global_paths.plots + str(self.name) + ".pdf")
+
+
         print self, self.rs_z[color]
 
 
@@ -185,9 +197,9 @@ class Cluster(object):
         # Iterate through each redshift we have predictions for
         for z in sorted(self.predictions_dict.iterkeys()):  # need to be sorted, since we will be including neighbors
             rs_members = 0
-            self._set_as_rs_member(self.sources_list, z, color, -0.1, 0.1, -1.4, 0.5)  # 3rd spot could be -2.0
+            self._set_as_rs_member(self.sources_list, z, color, -0.1, 0.1, -1.2, 0.5)  # 3rd spot could be -2.0
             for source in self.sources_list:
-                if source.RS_member:
+                if source.RS_member and source.in_location:
                     rs_members += 1
 
             # Append the results to lists
@@ -345,8 +357,6 @@ class Cluster(object):
             else:
                 source.in_location = False
 
-        fig = plotting.plot_location(self)
-        return fig
 
     def _find_xy_cut(self, radius):
         middle_x = (max([source.ra for source in self.sources_list]) + min([source.ra for source in

@@ -26,11 +26,8 @@ def read_sex_catalogs():
                 this_cluster = c
                 break
         else: # no break, which means a matching cluster wasn't found
-            # see if the cluster has a known redshift, and if so, pass that it to the Cluster initializer
-            redshift = None  # Initialize it to none, so it can be passed in as None if there isn't one
-            if "z" in cluster_name:
-                redshift = cluster_name[-4:]
-            this_cluster = Cluster.Cluster(cluster_name, [], spec_z=redshift)
+            # make one
+            this_cluster = Cluster.Cluster(cluster_name, [])
             cluster_list.append(this_cluster)
 
         # Use regular expressions to determine what type a catalog is.

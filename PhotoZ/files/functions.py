@@ -1,4 +1,4 @@
-from PhotoZ.files import Cluster
+
 from PhotoZ.files import plotting
 from PhotoZ.files import global_paths
 import os
@@ -41,22 +41,7 @@ def find_all_objects(enclosing_directory, extensions, files_list):
     # something.
 
 
-def _determine_which_cluster(clusters_list, catalog_name):
-    # TODO: document
-    name = make_cluster_name(catalog_name)
 
-    for c in clusters_list:
-        if c.name == name:
-            return c
-
-    # Since we got this far, we know it's not in the list. We now initialize a new cluster object with empty
-    clusters_list.append(Cluster.Cluster(name, []))
-    return clusters_list[-1]
-    # May need to do this instead.
-    # # Now can check again.
-    # for c in clusters_list:
-    #     if c.name == name:
-    #         return c
 
 
 def make_cluster_name(filename):
@@ -99,16 +84,8 @@ def make_cluster_name(filename):
         name = name.replace("m", "-")
         # Now have the beginning be taken off, and replaced with MOO.
         name = "MOO" + name[1:]
-
-        # Create a dictionary mapping the objects to their known redshifts
-        redshifts = {"MOO0012+1602": "0.94", "MOO0024+3303": "1.11", "MOO0125+1344": "1.12",
-             "MOO0130+0922": "1.15", "MOO0133-1057": "0.96", "MOO0212-1813": "1.09", "MOO0224-0620": "0.81",
-             "MOO0245+2018": "0.76", "MOO0319-0025": "1.19", "MOO1155+3901": "1.01", "MOO1210+3154": "1.05",
-             "MOO1319+5519": "0.94", "MOO1335+3004": "0.98", "MOO1514+1346": "1.06", "MOO1625+2629": "1.20",
-             "MOO2205-0917": "0.93", "MOO2320-0620": "0.92", "MOO2348+0846": "0.89", "MOO2355+1030": "1.27"}
-
-        # Add the redshift to the name for easy access
-        name += (", z = " + redshifts[name])
+        # Append catalog to the name, so that I can distinguish these from the catalogs I made myself.
+        name += " catalog"
         return name
 
     elif keck.match(name):
@@ -171,21 +148,23 @@ def uJansky_to_AB_mag(uJanksys):
         return 9999999.9
     Janskys = uJanksys * (10**(-6))
     return -2.5*math.log10(Janskys) + 8.9
-
-
 # AB to Vega: http://irsa.ipac.caltech.edu/data/COSMOS/tables/scosmos/scosmos_irac_200706_colDescriptions.html
+
 
 def fit_correction(cluster_list, colors, plot=False):
     # TODO: document
-    figures = []  # make pycharm happy about not messing with nonexistent variables
-    spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z]
+    figures = []  # initialize a list that will be filled with figures
+    spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z and not "catalog" in c.name]
+    # remove one cluster that does not have a good fit
+    spec_z_clusters = [c for c in spec_z_clusters if not c.name.startswith("MOO0224-0620")]
+
     spec_zs = [float(c.spec_z) for c in spec_z_clusters]
     rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
     weights = [(1.0 / ((c.upper_photo_z_error[colors] + c.lower_photo_z_error[colors])/2)) for c in spec_z_clusters]
     # fit a function to the redshifts
-    fit = polynomial.polyfit(rs_zs, spec_zs, 3)#, w=weights)
+    fit = polynomial.polyfit(rs_zs, spec_zs, 1)#, w=weights)
     if plot:
-        figures.append(plotting.plot_z_comparison(cluster_list, colors, fit))
+        figures.append(plotting.plot_z_comparison(cluster_list, colors, fit, label=True))
 
     # correct the redshifts
     for c in cluster_list:
@@ -196,11 +175,9 @@ def fit_correction(cluster_list, colors, plot=False):
                 z += fit[i]*x**i
             c.rs_z[colors] = str(round(z, 2))
 
-
-
     if plot:
         # Plot corrected redshifts
-        figures.append(plotting.plot_z_comparison(cluster_list, colors))
+        figures.append(plotting.plot_z_comparison(cluster_list, colors, label=False))
         save_as_one_pdf(figures, global_paths.z_comparison_plots)
 
 def write_results(clusters):

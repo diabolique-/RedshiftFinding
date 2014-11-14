@@ -49,6 +49,7 @@ calibration_catalogs_directory = check_for_slash(base_directory + "GoogleDrive/R
 
 # Place to store Python saved objects. Clusters will be pickled to this location.
 pickle_file = base_directory + "GoogleDrive/Research/Data/CodeData/PythonSavedClusters/Clusters.p"
+finished_pickle_file = base_directory + "GoogleDrive/Research/Data/CodeData/PythonSavedClusters/FinishedClusters.p"
 
 # Place to save calibration plots
 calibration_plots = base_directory + "GoogleDrive/Research/Plots/calibration.pdf"
@@ -57,7 +58,7 @@ calibration_plots = base_directory + "GoogleDrive/Research/Plots/calibration.pdf
 z_comparison_plots = base_directory + "GoogleDrive/Research/Plots/z.pdf"
 
 # Place to save all other plots
-plots = "/Users/gbbtz7/GoogleDrive/Research/Plots/Complete.pdf"
+plots = base_directory + check_for_slash("GoogleDrive/Research/Plots/ClusterFitting/")
 
 # Place to save the correction
 correction_location = "/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/correction.p"
