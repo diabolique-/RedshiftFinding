@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 
 def find_all_objects(enclosing_directory, extensions, files_list):
+    # DOCUMENTED
     """Recursively search the specified directory (and its subdirectories) for files that end in the desired extension.
 
     :param enclosing_directory: highest level directory containing the files
@@ -24,10 +25,10 @@ def find_all_objects(enclosing_directory, extensions, files_list):
         enclosing_directory += "/"
 
     for f in os.listdir(enclosing_directory):
-        # Determine if the item is a directory or not
         entire_path = enclosing_directory + f
+        # Determine if the item is a directory or not
         if os.path.isdir(entire_path):
-            # If it is a diretory, search through that directory with this function.
+            # If it is a directory, search through that directory with this function.
             find_all_objects(entire_path, extensions, files_list)
             # We don't need to record the output of the function, since the list we pass in will be modified in place.
         else:
@@ -106,6 +107,7 @@ def make_cluster_name(filename):
 
 
 def get_band_from_filename(filename):
+    # DOCUMENTED
     """Finds the band of an image or catalog based on the filename.
 
     Assumes file names are of the form object_name_band.extension

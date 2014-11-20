@@ -142,6 +142,9 @@ def read_catalog(filepath, desired_columns, label_type=None, label_row=None, dat
     else:
         all_lines = [line.strip().split(separator) for line in f.readlines()]
 
+    #close file
+    f.close()
+
     # Also want the values to be in the right data type. If numbers are
     # involved, we don't want to pass strings back
     for row_idx in range(len(all_lines)):

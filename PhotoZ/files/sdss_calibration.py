@@ -88,7 +88,7 @@ def _call_sdss_sql(command, data_format="csv"):
 
     return response.get_data()
 
-    # Simple, but broken. Not sure why.
+    # this part is simple, but broken. Not sure why.
     # url = 'http://skyserver.sdss3.org/dr10/en/tools/search/sql.aspx'
     # params = urllib.urlencode({'cmd': command, 'format': data_format})
     # my_file = urllib.urlopen(url + params)

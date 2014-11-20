@@ -13,7 +13,7 @@ from PhotoZ.files import catalog
 def sextractor_main(image_paths):
     """Perform the process to run SExtractor on a list of images.
 
-    Matches r and z images, then calls the SExtractor function to run it with z as the detection image, and the
+    Matches r and z images, then calls the SExtractor function to run it with z as the detection image, and both r and z
     as measurement. Collects figures showing the calibration process, and then saves them.
 
     :param image_paths: list of strings that are the paths of all the images that will be run through SExtractor
@@ -22,12 +22,13 @@ def sextractor_main(image_paths):
     """
     # First, need to group the images based on what cluster they are of
     grouped_images = _group_images(image_paths)
-    # Have a list of tuples
+    # Will now have a list of tuples
 
     # Initialize list of figures to be filled as needed
     figures = []
     # We want to run everything on all the clusters, so iterate through them all
     for cluster in grouped_images:
+
         # Select the r and z band images in each pair. That is what will be used for now.
         r_image, z_image = _find_r_and_z_images(cluster)
 
@@ -41,6 +42,7 @@ def sextractor_main(image_paths):
             # Now we can do the SExtractor work on the r and z images
             for measurement_image in [z_image, r_image]:
                 # Always use z as the detection image, since it is the reddest band in optical
+                # TODO: DOCUMENTED TO HERE
                 figure = _create_catalogs(z_image, measurement_image)
                 # That function does the dirty work of running SExtractor and calibrating to SDSS. It returns a
                 # figure object of the plot comparing the final SDSS calibration. If it couldn't work, it will return
@@ -53,7 +55,7 @@ def sextractor_main(image_paths):
 
                     break  # skips else block
 
-                else: # did work, and therefore returned a figure
+                else: # did work, and therefore returned a figure of the calibration process
                     figures.append(figure)
                 # TODO: can also adjust FWHM from SExtractor catalog information
 
@@ -317,14 +319,16 @@ def _get_numbers_from_filename(filename):
 
 
 def _find_r_and_z_images(images):
-    """Take a list of images paths, and figure out which is r, and which is z.
+    # DOCUMENTED
+    """Take a list of images paths of images of one cluster, and figures out which is r, and which is z.
 
     :type images: list of strings showing the file paths for the images.
     :return: path for r image, path for z image.
     """
+    # TODO: is this the best way to go? I will need to work with arbitrary bands at some point in the future.
 
-    #TODO: add IRAC
     r_image, z_image = "", ""  # To make PyCharm happy (says I might return something that hasn't been assigned.
+
     for image_path in images:
         band = functions.get_band_from_filename(image_path.split("/")[-1])  # the filename is after the last /
         if band == "r":
@@ -332,8 +336,7 @@ def _find_r_and_z_images(images):
         elif band == "z":
             z_image = image_path
         else:
-            other_classes.EndProgramError("An image was passed in with a band I can't do anything with.", image_path)
-        # TODO: put [3.6] and [4.5] in this when if I ever run things from IRAC images.
+            print("An image was passed in in a band that I don't know how to handle now:" + image_path)
     return r_image, z_image
 
 def get_fwhm(image_path):

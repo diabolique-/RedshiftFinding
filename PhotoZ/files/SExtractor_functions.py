@@ -6,6 +6,7 @@ def find_zeropoint(file_path):
     """
     sex_file = open(file_path, "r")
     lines = sex_file.readlines()
+    sex_file.close()
     for l in lines:
         if l.split():  # is not an empty list, so not a blank line either
             if l.split()[0] == "MAG_ZEROPOINT":

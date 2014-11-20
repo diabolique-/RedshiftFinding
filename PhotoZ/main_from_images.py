@@ -12,7 +12,7 @@ import cPickle
 # 3: Starts by reading in saved Cluster list after it has finished, so they all have redshifts. There is still the
 #       correction to be done.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 2
+START_WITH = 3
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -20,6 +20,8 @@ if START_WITH == 0:
     print "Starting SExtractor\n"
     # Find all images in the desired directory. Will have a list of file paths.
     image_list = functions.find_all_objects(global_paths.images_directory, [".fits"], [])
+
+    # DOCUMENTED TO HERE
 
     SExtractor.sextractor_main(image_list)
 
@@ -34,14 +36,20 @@ if START_WITH <= 1:
         c.calculate_color()
 
     # save cluster list to disk
-    cPickle.dump(cluster_list, open(global_paths.pickle_file, 'w'), -1)
+    pickle_file1 = open(global_paths.pickle_file, 'w')
+    cPickle.dump(cluster_list, pickle_file1, -1)
+    pickle_file1.close()
+
+
 
     print "\nDone reading catalogs\n"
 
 
 if START_WITH == 2:
     # read in cluster objects
-    cluster_list = cPickle.load(open(global_paths.pickle_file, 'r'))
+    pickle_file2 = open(global_paths.pickle_file, 'r')
+    cluster_list = cPickle.load(pickle_file2)
+    pickle_file2.close()
 
 if START_WITH <= 2:
     print "\nStarting redshift fitting.\n"
@@ -52,8 +60,10 @@ if START_WITH <= 2:
             c.fit_z("r-z", plot_figures=True)
 
     # save cluster list to disk
-    cPickle.dump(cluster_list, open(global_paths.finished_pickle_file, 'w'), -1)
-    # TODO: save each plot individually after it is done. I don't want a huge list anymore.
+    pickle_file3 = open(global_paths.finished_pickle_file, 'w')
+    cPickle.dump(cluster_list, pickle_file3, -1)
+    pickle_file3.close()
+
 
 if START_WITH == 3:
     cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
