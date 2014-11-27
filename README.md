@@ -27,7 +27,7 @@ _____
 
 Needed packages:
 
-ezgal (can be found at http://www.baryons.org/ezgal/)  You will also need at least one model set. It's currently set up 
+ezgal (can be found at https://github.com/dpgettings/ezgal)  You will also need at least one model set. It's currently set up 
 to use BC03, but you can change that if desired.
     
 numpy
