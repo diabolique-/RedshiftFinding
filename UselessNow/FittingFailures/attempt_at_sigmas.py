@@ -1,7 +1,7 @@
-from PhotoZ.files import plotting
-from PhotoZ.files import main_functions
 import matplotlib.pyplot as plt
-import math
+
+from PhotoZ.files import main_functions
+from UselessNow.NotFromImages import plotting
 
 
 def find_redshift_sigma_clipping(image, predictions, plot_process=True):

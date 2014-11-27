@@ -1,11 +1,10 @@
 # contains function used for fitting the redshfit to the cluster
-from PhotoZ.files import plotting
-from PhotoZ.files import main_functions
 import matplotlib.path as path
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 
-
+from PhotoZ.files import main_functions
+from UselessNow.NotFromImages import plotting
 
 
 def find_RS_redshift_color_cuts(image, predictions, plot_cuts=False):

@@ -1,8 +1,10 @@
-from PhotoZ.files import other_classes
+import cPickle
+
 from matplotlib.backends.backend_pdf import PdfPages
 import ezgal
 import numpy as np
-import cPickle
+
+from UselessNow.NotFromImages import other_classes
 
 
 def read_image_objects(file_path="/Users/gbbtz7/GoogleDrive/Research/Data/images.pickle"):

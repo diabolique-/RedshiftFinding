@@ -3,10 +3,10 @@ Main function that will find the redshift of the red sequence. Recreates the plo
 """
 from PhotoZ.FittingFailures import RSfinding, models
 
-from PhotoZ.files import main_functions
-
 
 # read data in. read_data returns a list of image objects
+from UselessNow.NotFromImages import main_functions
+
 images = main_functions.read_data("/Users/gbbtz7/GoogleDrive/Research/Data/madcows.specz.phot/")
 
 # initialize empty list of figures, will fill with figures as it runs

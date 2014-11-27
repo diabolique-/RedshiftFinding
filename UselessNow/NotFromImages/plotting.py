@@ -1,50 +1,46 @@
 # coding=utf-8
-from PhotoZ.files import predictions
-from PhotoZ.files import global_paths
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol
 import matplotlib.cm as cmx
+import numpy.polynomial.polynomial as polynomial
 import numpy as np
 
-# TODO: document
+from UselessNow.NotFromImages import main_functions
 
 
-def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_sequence=False, return_axis=False):
+def plot_color_mag(cluster, predictions=True, distinguish_red_sequence=False, return_axis=False):
     """
     Makes a color-magnitude plot for the given cluster. Can plot EzGal predictions and plot RS in red.
 
     The CMDs are designed to look like the ones in Stanford 2014. The plot dimensions are similar to those.
 
     :param cluster: Cluster object that the data will be taken from.
-    :param color: string holding color to be plotted on te y axis. Should be of the form "band1-band2"
-    :param band: string telling which band's magnitudes will be plotted on the x axis.
     :param predictions: Boolean of whether or not to plot the EzGal predictions.
     :param distinguish_red_sequence: Boolean of whether or not to plot the RS members in red.
     :return: first: figure object the CMD was plotted on.
              second: axes object for the CMD itself. This is needed because I need to over plot things later, and
              returning the object is easier than making this function way more complicated than it already is.
     """
+
     # Need to make lists that can be plotted on the CMD
-    valid_sources = [source for source in cluster.sources_list if (color in source.colors and band in source.mags and
-                                                                   source.colors[color].error < 5.0 and
-                                                                   source.in_location)]
     # start by initializing empty lists to append to
     non_rs_mags, rs_mags, non_rs_colors, rs_colors, rs_color_errs, non_rs_color_errs = [], [], [], [], [], []
-    if distinguish_red_sequence:
-        # The many if statements are to make sure only objects with the right data are included
-        rs_mags = [source.mags[band].value for source in valid_sources if source.RS_member]
-        non_rs_mags = [source.mags[band].value for source in valid_sources if not source.RS_member]
-        rs_colors = [source.colors[color].value for source in valid_sources if source.RS_member]
-        non_rs_colors = [source.colors[color].value for source in valid_sources if not source.RS_member]
-        rs_color_errs = [source.colors[color].error for source in valid_sources if source.RS_member]
-        non_rs_color_errs = [source.colors[color].error for source in valid_sources if not source.RS_member]
-    else:  # use non_rs lists
-        non_rs_mags = [source.mags[band].value for source in valid_sources]
-        non_rs_colors = [source.colors[color].value for source in valid_sources]
-        non_rs_color_errs = [source.colors[color].error for source in valid_sources]
-
-
+    for gal in cluster.galaxy_list:
+        if gal.color_error < 5.0:  # Don't want huge errors crowding out the plot
+            if distinguish_red_sequence:  # If the user wants the RS in red, we need separate lists for RS and not
+                if gal.RS_member:
+                    rs_mags.append(gal.mag)
+                    rs_colors.append(gal.color)
+                    rs_color_errs.append(gal.color_error)
+                else:
+                    non_rs_mags.append(gal.mag)
+                    non_rs_colors.append(gal.color)
+                    non_rs_color_errs.append(gal.color_error)
+            else:
+                non_rs_mags.append(gal.mag)
+                non_rs_colors.append(gal.color)
+                non_rs_color_errs.append(gal.color_error)
 
     # Set up the plot
     fig = plt.figure(figsize=(9, 6))
@@ -58,7 +54,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     if predictions:
         color_bar_ax = plt.subplot(whole_plot[0, 1])
         # Plot the predictions now
-        _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax)
+        add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax)
 
     # Now we can plot the points on the CMD (including errors)
     # check to make sure they have something in them
@@ -69,30 +65,28 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
         color_mag_ax.errorbar(x=rs_mags, y=rs_colors, yerr=rs_color_errs, c="r", fmt=".", elinewidth=0.35, capsize=0,
                               markersize=5)  # Only difference is that this is plotted in red.
 
-    color_mag_ax.set_title(cluster.name)
-    color_mag_ax.set_xlabel(band + " Band Magnitude")
-    color_mag_ax.set_ylabel(color + " Color")
+    color_mag_ax.set_title(cluster.name + ",  spec z = " + str(cluster.spec_z))
+    color_mag_ax.set_xlabel(cluster.filters[1] + " Band Magnitude")
+    color_mag_ax.set_ylabel(cluster.filters[0] + " - " + cluster.filters[1] + " Color")
 
     # Change the scale to match Stanford 14. Each filter set will be different
-    if color == "r-z":
-        color_mag_ax.set_xlim([20, 23.5])  # should be [20, 23.5] Changed to see high redshift better
-        # color_mag_ax.set_xlim([20, 26])
+    if cluster.filters == ["r", "z"]:
+        color_mag_ax.set_xlim([20, 24.5])  # should be [20, 23.5] Changed to see high redshift better
+        # color_mag_ax.set_xlim([18, 26])
         color_mag_ax.set_ylim([0, 3.5])
-    elif color == "i-ch1":
+    elif cluster.filters == ["i", "[3.6]"]:
         color_mag_ax.set_xlim([18, 21.5])
         color_mag_ax.set_ylim([-.5, 4.5])
-    elif color == "ch1-ch2":
+    elif cluster.filters == ["[3.6]", "[4.5]"]:
         color_mag_ax.set_xlim([18.5, 21.5])
         color_mag_ax.set_ylim([-1, 0.5])
-
-
     if return_axis:
         return fig, color_mag_ax
     else:
         return fig
 
 
-def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
+def add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
     """
     Plot lines representing the EzGal predictions of the RS for redshifts 0.5 ≤ z ≤ 1.5, with spacing of 0.05.
 
@@ -106,7 +100,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
     """
 
     # first need to get the model's predictions
-    predictions_dict = predictions.make_prediction_dictionary(0.05)
+    predictions_dict = main_functions.make_prediction_dictionary(0.05)
     # Returns a dictionary with keys = redshifts, values = predictions objects
 
     # Set the colormap, to color code lines by redshift
@@ -178,7 +172,7 @@ def plot_residuals(cluster):
     return fig
 
 
-def plot_z_comparison(clusters, color, fit=None, label=None):
+def plot_z_comparison(clusters, directory, filename):
     """
     Plot and save the spectroscopic redshift vs calculated photometric redshift.
 
@@ -190,54 +184,41 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     # Make lists of spectroscopic and photometric redshifts, since that's what the plot function takes
     spec, photo, upper_photo_err, lower_photo_err, weights = [], [], [], [], []
     for c in clusters:
-        if c.spec_z and color in c.rs_z:  # Can't plot comparison if the cluster doesn't have a spectroscopic redshift
+        if c.spec_z:  # Can't plot comparison if the cluster doesn't have a spectroscopic redshift
             spec.append(float(c.spec_z))
-            photo.append(float(c.rs_z[color]))
-            lower_photo_err.append(c.lower_photo_z_error[color])
-            upper_photo_err.append(c.upper_photo_z_error[color])
-            # weights.append(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2))  # Average the errors
+            photo.append(float(c.photo_z))
+            lower_photo_err.append(c.lower_photo_z_error)
+            upper_photo_err.append(c.upper_photo_z_error)
+            weights.append(1.0 / ((c.upper_photo_z_error + c.lower_photo_z_error)/2))  # Average the errors
             # TODO: Find a better way to do the weighting for the fit. Simple averaging of the errors is WRONG.
-    total_error = [lower_photo_err, upper_photo_err]  # goes into the lopsided error bars
+    total_error = [lower_photo_err, upper_photo_err]
 
-    # # Find the best fit line
-    # fit = polynomial.polyfit(spec, photo, 1, w=weights)  # returns coefficients of a linear fit
-    # # Turn these coefficients into a line
+    # Find the best fit line
+    fit = polynomial.polyfit(spec, photo, 1, w=weights)  # returns coefficients of a linear fit
+    # Turn these coefficients into a line
     x = np.arange(0, 1.5, 0.01)
-
-
+    fit_line = fit[0] + x * fit[1]
 
     # Plot everything
     # TODO: make work with lopsided error bars
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(1, 1, 1)
     # Plot points for individual clusters
-    ax.errorbar(photo, spec, xerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
+    ax.errorbar(spec, photo, yerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
     # Plot where the best fit line should be
-    ax.plot([0.5, 2.5], [0.5, 2.5], "k-", lw=0.5)
+    ax.plot([0.5, 1.5], [0.5, 1.5], "k-", lw=0.5)
     # Plot the best fit line
-    if fit is not None:  # If we want to plot the fit
-        # turn the fit into something that can be plotted
-        fit_line = 0
-        for coefficient in range(len(fit)):
-            fit_line += fit[coefficient]*x**(coefficient)
-            # acually plot it
-        ax.plot(x, fit_line, "b")
-    # label the data points with the cluster name
-    if label:
-        for c in clusters:
-            if c.spec_z and color in c.rs_z:
-                xy = (c.rs_z[color], c.spec_z)
-                ax.annotate(s=c.name, xy=xy, xytext=(0,-7), textcoords="offset points", size=4, rotation='vertical')
+    ax.plot(x, fit_line, "b")
     # Add a grid, to make for easier viewing
     ax.grid(which="both")
     ax.minorticks_on()
-    ax.set_ylabel("Spectroscopic Redshift")
-    ax.set_xlabel("Red Sequence Redshift")
-    ax.set_title("Spectroscopic vs Red Sequence Redshifts")
+    ax.set_xlabel("Spectroscopic Redshift")
+    ax.set_ylabel("Photometric Redshift")
+    ax.set_title("Spectroscopic vs Photometric Redshifts")
     ax.set_xlim((0.5, 1.5))
     ax.set_ylim((0.5, 1.5))
 
-    return fig
+    fig.savefig(directory + filename + ".pdf", format="pdf")
 
 
 def plot_initial_redshift_finding(cluster, z_list, galaxies_list, best_z):
@@ -261,11 +242,10 @@ def plot_initial_redshift_finding(cluster, z_list, galaxies_list, best_z):
     # Show the cluster's redshift, and the initial redshift the code picked
     bar_ax.axvline(x=cluster.spec_z, c="r", lw=4)
     bar_ax.axvline(x=best_z, c="k", lw=4)
-    plt.savefig(global_paths.initial_z_plots + cluster.name + "_histo.pdf", format="pdf")
-    plt.close(bar_fig)
+    plt.savefig("/Users/gbbtz7/GoogleDrive/Research/Plots/InitialZ/" + cluster.name + "_histo.pdf", format="pdf")
 
 
-def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, color_red_sequence=True):
+def plot_fitting_procedure(cluster, redshift, other_info=None, color_red_sequence=True):
     """Plot the red sequence members for the cluster on a CMD, with a line indicating the redshift of the current fit.
 
     :param cluster: Cluster that holds info that will be plotted
@@ -273,14 +253,12 @@ def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, colo
     :param other_info: Info that will go into the subtitle.
     :return: figure holding the plot
     """
-    fig, ax = plot_color_mag(cluster, color=color, band=band, predictions=False,
-                                                                      distinguish_red_sequence=color_red_sequence,
-                             return_axis=True)
+    fig, ax = plot_color_mag(cluster, predictions=False, distinguish_red_sequence=color_red_sequence, return_axis=True)
     line = cluster.predictions_dict[redshift].rz_line
     ax.plot(line.xs, line.ys, "k-", linewidth=0.5, label="Initial z")
     ax.scatter(cluster.predictions_dict[redshift].z_mag, cluster.predictions_dict[redshift].r_mag -
                cluster.predictions_dict[redshift].z_mag, c="r", s=10)  # Plot characteristic magnitude point
-    fig.suptitle(cluster.name + ", current z=" + str(redshift))
+    fig.suptitle(cluster.name + ", spec z = " + str(cluster.spec_z) + ", current z=" + str(redshift))
     ax.set_title(str(other_info), fontsize=10)
 
     return fig
@@ -288,36 +266,24 @@ def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, colo
 
 def plot_location(cluster):
 
-    # make lists of ra and dec for 3 cases: red sequence members, non-rs members inside location cut, non rs-member
-    # outisde location cut
-    rs_decs, rs_ras, loc_non_rs_ras, loc_non_rs_decs, non_loc_non_rs_ras, non_loc_non_rs_decs = [], [], [], [], [], []
-    for source in cluster.sources_list:
-        if source.RS_member:
-            rs_ras.append(source.ra)
-            rs_decs.append(source.dec)
+    # make lists of ra and dec for both RS members and non RS members
+    rs_ras, rs_decs, non_rs_ras, non_rs_decs = [], [], [], []
+    for gal in cluster.galaxy_list:
+        if gal.RS_member:
+            rs_ras.append(gal.ra)
+            rs_decs.append(gal.dec)
         else:
-            if source.in_location:
-                loc_non_rs_ras.append(source.ra)
-                loc_non_rs_decs.append(source.dec)
-            else:
-                non_loc_non_rs_ras.append(source.ra)
-                non_loc_non_rs_decs.append(source.dec)
+            non_rs_ras.append(gal.ra)
+            non_rs_decs.append(gal.dec)
 
     # Then plot them
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(1, 1, 1)
-    # Have to check length of arrays, since 0 length lists can't be plotted
-    if non_loc_non_rs_decs and non_loc_non_rs_ras:
-        ax.scatter(non_loc_non_rs_ras, non_loc_non_rs_decs, c="0.2", s=2, linewidth=0)
-    if loc_non_rs_decs and loc_non_rs_ras:
-        ax.scatter(loc_non_rs_ras, loc_non_rs_decs, c="k", s=3)
-    if rs_decs and rs_ras:
-        ax.scatter(rs_ras, rs_decs, c="r", s=6, edgecolors=None, linewidth=0)  # don't want black borders
+    ax.scatter(non_rs_ras, non_rs_decs, c="k", s=3)
+    ax.scatter(rs_ras, rs_decs, c="r", s=6, edgecolors=None, linewidth=0)  # don't want black borders
     ax.set_title(cluster.name)
     ax.set_xlabel("RA")
     ax.set_ylabel("Dec")
-    # make ra go from right to left
-    plt.gca().invert_xaxis()
 
     return fig
 

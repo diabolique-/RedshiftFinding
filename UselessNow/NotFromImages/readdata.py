@@ -1,8 +1,9 @@
 import os
 import os.path as path
 import cPickle
-from PhotoZ.files import other_classes
-from PhotoZ.files import Cluster
+
+from UselessNow.NotFromImages import other_classes
+from UselessNow.NotFromImages import Cluster
 
 
 def make_data_list(directory, paths_list):
@@ -19,7 +20,7 @@ def make_data_list(directory, paths_list):
         if path.isdir(full_path):
             make_data_list(full_path, paths_list)
             # If it's a file, we only want data files
-        elif full_path.endswith(".dat"):
+        elif full_path.endswith(".cat"):  # was .dat
             paths_list.append(full_path)
     return paths_list
 
@@ -36,7 +37,8 @@ redshifts = {"m0012p1602.phot.dat": "0.94", "m0024p3303.phot.dat": "1.11", "m012
              "m2355p1030.phot.dat": "1.27"}
 
 # Find all the data files in the directory
-files_list = make_data_list("/Users/gbbtz7/GoogleDrive/Research/Data/ClusterData", [])
+files_list = make_data_list("/Users/gbbtz7/GoogleDrive/Research/Data/ClusterData/mine", [])
+print files_list
 
 # Iterate through all the data files, and save the data to an image object
 for file_path in files_list:

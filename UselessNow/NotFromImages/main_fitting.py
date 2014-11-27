@@ -1,8 +1,6 @@
-from PhotoZ.files import main_functions
-from PhotoZ.files import plotting
-
-
 # need to read data in from file
+from UselessNow.NotFromImages import plotting, main_functions
+
 clusters = main_functions.read_cluster_objects()
 
 # Only use ones with r-z data for now
@@ -31,4 +29,4 @@ if cmd_figs:
     main_functions.save_as_one_pdf(cmd_figs, "/Users/gbbtz7/GoogleDrive/Research/Plots/Cuts.pdf")
 
 # Plot redshift comparison
-plotting.plot_z_comparison(clusters, "/Users/gbbtz7/GoogleDrive/Research/Plots/", "Spec_z_vs_photo_z")
+# plotting.plot_z_comparison(clusters, "/Users/gbbtz7/GoogleDrive/Research/Plots/", "Spec_z_vs_photo_z")
