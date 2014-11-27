@@ -12,7 +12,7 @@ import cPickle
 # 3: Starts by reading in saved Cluster list after it has finished, so they all have redshifts. There is still the
 #       correction to be done.
 # TODO: write better comments up here for where to start things, once I finish the program.
-START_WITH = 3
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 

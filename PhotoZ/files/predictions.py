@@ -2,6 +2,7 @@ import ezgal
 import numpy as np
 import cPickle
 from PhotoZ.files import other_classes
+from PhotoZ.files import global_paths
 
 def make_prediction_dictionary(spacing):
     """
@@ -15,8 +16,20 @@ def make_prediction_dictionary(spacing):
 
     # Make the models
     # For simplicity right now, just use the 0.1 gyr exponential model
-    model = ezgal.ezgal("bc03_exp_0.1_z_0.02_chab_evolved_zf_3.0_ugrizch1ch2.model")
-
+    evolved_model = "bc03_exp_0.1_z_0.02_chab_evolved_zf_3.0_ugrizch1ch2.model"
+    default_model = "bc03_exp_0.1_z_0.02_chab.model"
+    try:  # to open the evolved model
+        model = ezgal.ezgal(evolved_model)
+        build = False
+    except ValueError:
+        # the evolved model wasn't found, so we need to build one
+        try:  # to open the basic model that isn't evolved.
+            model = ezgal.model(default_model)
+        except ValueError:  # We couldn't find a basic model, so we need to download one.
+            raise ValueError("The basic model file was not found. Please download one from the ezgal website "
+                             "(http://www.baryons.org/ezgal/download.php) and move it to the exgal package directory. "
+                             "(ezgal/data/models/)\nbc03 is recommended, but you can choose another if you wish.")
+        build = True
 
 
     # Set formation redshift and observed redshifts
@@ -32,9 +45,16 @@ def make_prediction_dictionary(spacing):
     # changed as well. That work depends on the index of the specific filters
     # dimensions of mags: [redshifts, filters]
 
+    # If we recently build and evolved the model, save it so we don't have to do that again.
+    if build:
+        # the location may need to be changed to support different locations.
+        # TODO: find the correct location automatically
+        model.save_model("/Library/Python/2.7/site-packages/ezgal/data/models/"+evolved_model)
+
+
     # Now need to get slopes for all redshifts
     # The info here is stored in a file, so reading that will be all we need
-    load_file = open("/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/Best_fit_RS_slope.pickle")
+    load_file = open(global_paths.rs_slopes)
     slope_dict = cPickle.load(load_file)
     # slope_dict is a dictionary of keys = redshifts, values = slopes
     load_file.close()

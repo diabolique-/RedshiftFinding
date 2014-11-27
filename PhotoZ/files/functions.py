@@ -166,7 +166,7 @@ def fit_correction(cluster_list, colors, plot=False):
     # fit a function to the redshifts
     fit = polynomial.polyfit(rs_zs, spec_zs, 1)#, w=weights)
     if plot:
-        figures.append(plotting.plot_z_comparison(cluster_list, colors, fit, label=True))
+        figures.append(plotting.plot_z_comparison(spec_z_clusters, colors, fit, label=True))
 
     # correct the redshifts
     for c in cluster_list:

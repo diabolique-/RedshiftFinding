@@ -15,8 +15,10 @@ def check_for_slash(path):
     else:
         return path + "/"
 
-base_directory = "/Users/gbbtz7/"
-# base_directory = "/Users/gillenbrown/"
+# base_directory = "/Users/gbbtz7/"
+base_directory = "/Users/gillenbrown/"
+
+# TODO: organize these things. They are all over the place
 
 # Tell the program where the various things will be, so it can find them
 # Directory containing all the images. They can be in subdirectories of this directory; it will find all .fits files
@@ -61,13 +63,18 @@ z_comparison_plots = base_directory + "GoogleDrive/Research/Plots/z.pdf"
 plots = base_directory + check_for_slash("GoogleDrive/Research/Plots/ClusterFitting/")
 
 # Place to save the correction
-correction_location = "/Users/gbbtz7/GoogleDrive/Research/Data/CodeData/correction.p"
+correction_location = base_directory + "GoogleDrive/Research/Data/CodeData/correction.p"
 
 # location to save the resulting .txt file with redshifts to
 results = base_directory + "GoogleDrive/Research/Plots/results.txt"
 
 # Place to store resulting catalogs of sources that are or are not RS members
 rs_catalogs = check_for_slash(base_directory + "GoogleDrive/Research/Data/RS_catalogs/")
+
+# place to store RS slopes. W# TODO: consolidate this into one thing with other various data
+rs_slopes = base_directory + "GoogleDrive/Research/Data/CodeData/Best_fit_RS_slope.pickle"
+
+initial_z_plots = base_directory + "GoogleDrive/Research/Plots/InitialZ/"
 
 # All these variables that hold file locations will be called as global variables from within functions,
 # just so I don't have to waste time passing all them around. It would be a mess.

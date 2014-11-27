@@ -1,5 +1,6 @@
 # coding=utf-8
 from PhotoZ.files import predictions
+from PhotoZ.files import global_paths
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol
@@ -260,7 +261,7 @@ def plot_initial_redshift_finding(cluster, z_list, galaxies_list, best_z):
     # Show the cluster's redshift, and the initial redshift the code picked
     bar_ax.axvline(x=cluster.spec_z, c="r", lw=4)
     bar_ax.axvline(x=best_z, c="k", lw=4)
-    plt.savefig("/Users/gbbtz7/GoogleDrive/Research/Plots/InitialZ/" + cluster.name + "_histo.pdf", format="pdf")
+    plt.savefig(global_paths.initial_z_plots + cluster.name + "_histo.pdf", format="pdf")
     plt.close(bar_fig)
 
 
