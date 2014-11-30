@@ -11,10 +11,21 @@ import cPickle
 # 2: Starts by reading in saved Cluster objects from the specified directory.
 # 3: Starts by reading in saved Cluster list after it has finished, so they all have redshifts. There is still the
 #       correction to be done.
-# TODO: write better comments up here for where to start things, once I finish the program.
+# note: selecting a lower number will still run everything after it. You may want to start at a later location, for
+# example, if you've already read in catalogs and don't want to waste time doing it again. The code is smart enough to
+# save it's progress after each step, so you don't need to worry about that.
 START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
+
+# initialize the resources file if it doesn't exist already.
+try:
+    open(global_paths.resources, "r")
+except IOError:
+    print "making new resources file"
+    resources = open(global_paths.resources, "w")
+    cPickle.dump(dict(), resources, -1)
+    resources.close()
 
 if START_WITH == 0:
     print "Starting SExtractor\n"
@@ -39,8 +50,6 @@ if START_WITH <= 1:
     pickle_file1 = open(global_paths.pickle_file, 'w')
     cPickle.dump(cluster_list, pickle_file1, -1)
     pickle_file1.close()
-
-
 
     print "\nDone reading catalogs\n"
 
@@ -69,7 +78,7 @@ if START_WITH == 3:
     cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
 
 # fit a correction
-functions.fit_correction(cluster_list, "r-z", plot=True)
+functions.fit_correction(cluster_list, "r-z", read_in=False, plot=True)
 
 # write results to a file
 functions.write_results(cluster_list)

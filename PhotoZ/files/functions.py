@@ -7,9 +7,10 @@ import math
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy.polynomial.polynomial as polynomial
 import matplotlib.pyplot as plt
+import cPickle
 
 
-def find_all_objects(enclosing_directory, extensions, files_list):
+def find_all_objects(enclosing_directories, extensions, files_list):
     # DOCUMENTED
     """Recursively search the specified directory (and its subdirectories) for files that end in the desired extension.
 
@@ -20,21 +21,23 @@ def find_all_objects(enclosing_directory, extensions, files_list):
     :return: files_list, with the paths of all the files appended to it
     """
 
-    # Make sure enclosing directory has a finishing /
-    if not enclosing_directory.endswith("/"):
-        enclosing_directory += "/"
 
-    for f in os.listdir(enclosing_directory):
-        entire_path = enclosing_directory + f
-        # Determine if the item is a directory or not
-        if os.path.isdir(entire_path):
-            # If it is a directory, search through that directory with this function.
-            find_all_objects(entire_path, extensions, files_list)
-            # We don't need to record the output of the function, since the list we pass in will be modified in place.
-        else:
-            for ext in extensions:
-                if entire_path.endswith(ext):
-                    files_list.append(entire_path)
+
+    for d in enclosing_directories:
+        # Make sure enclosing directory has a finishing /
+        if not d.endswith("/"):
+            d += "/"
+        for f in os.listdir(d):
+            entire_path = d + f
+            # Determine if the item is a directory or not
+            if os.path.isdir(entire_path):
+                # If it is a directory, search through that directory with this function.
+                find_all_objects(entire_path, extensions, files_list)
+                # We don't need to record the output of the function, since the list we pass in will be modified in place.
+            else:
+                for ext in extensions:
+                    if entire_path.endswith(ext):
+                        files_list.append(entire_path)
 
     return files_list
     # We technically don't need to return files_list, since changes in it will be reflected in the main program,
@@ -153,20 +156,38 @@ def uJansky_to_AB_mag(uJanksys):
 # AB to Vega: http://irsa.ipac.caltech.edu/data/COSMOS/tables/scosmos/scosmos_irac_200706_colDescriptions.html
 
 
-def fit_correction(cluster_list, colors, plot=False):
+def fit_correction(cluster_list, colors, read_in=False, plot=False):
     # TODO: document
     figures = []  # initialize a list that will be filled with figures
-    spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z and not "catalog" in c.name]
-    # remove one cluster that does not have a good fit
-    spec_z_clusters = [c for c in spec_z_clusters if not c.name.startswith("MOO0224-0620")]
+    if read_in:
+        # open the resources pickle fil
+        pickle_file = open(global_paths.resources, "r")
+        resources = cPickle.load(pickle_file)
+        fit = resources["fit"]
+        pickle_file.close()
+    else:
+        spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z and not "catalog" in c.name]
+        # remove one cluster that does not have a good fit
+        spec_z_clusters = [c for c in spec_z_clusters if not c.name.startswith("MOO0224-0620")]
 
-    spec_zs = [float(c.spec_z) for c in spec_z_clusters]
-    rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
-    weights = [(1.0 / ((c.upper_photo_z_error[colors] + c.lower_photo_z_error[colors])/2)) for c in spec_z_clusters]
-    # fit a function to the redshifts
-    fit = polynomial.polyfit(rs_zs, spec_zs, 1)#, w=weights)
-    if plot:
-        figures.append(plotting.plot_z_comparison(spec_z_clusters, colors, fit, label=True))
+        spec_zs = [float(c.spec_z) for c in spec_z_clusters]
+        rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
+        weights = [(1.0 / ((c.upper_photo_z_error[colors] + c.lower_photo_z_error[colors])/2)) for c in spec_z_clusters]
+        # fit a function to the redshifts
+        fit = polynomial.polyfit(rs_zs, spec_zs, 1)#, w=weights)
+        if plot:
+            figures.append(plotting.plot_z_comparison(spec_z_clusters, colors, fit, label=True))
+
+        # save the correction to disk.
+        pickle_file = open(global_paths.resources, "r")
+        resources = cPickle.load(pickle_file)
+        pickle_file.close() # close the file, since we want to overwrite what's in it when we save the new resource
+        resources["fit"] = fit
+        pickle_file = open(global_paths.resources, "w") # opening for writing gets rid of the old file.
+        cPickle.dump(resources, pickle_file, -1)  # we don't lose data, since we read in what was there and updated it
+        pickle_file.close()
+
+
 
     # correct the redshifts
     for c in cluster_list:

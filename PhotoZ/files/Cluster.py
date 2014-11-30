@@ -86,7 +86,7 @@ class Cluster(object):
 
 
 
-        initial_z = self._find_initial_redshift(color, plot_bar=True)
+        initial_z = self._find_initial_redshift(color, plot_bar=plot_figures, figs_list=figures_list)
 
         # set red sequence cut based on the initial redshift
         self._set_as_rs_member(self.sources_list, initial_z, color, -0.1, 0.1, -1.2, 0.5)
@@ -178,7 +178,7 @@ class Cluster(object):
 
 
 
-    def _find_initial_redshift(self, color, plot_bar=True):
+    def _find_initial_redshift(self, color, plot_bar=False, figs_list=None):
         """Find a good redshift for the cluster, based on the highest number of galaxies near a predicted RS line.
 
         Iterates through all redshifts, and counts the number of galaxies within 0.1 color of the model line. Then
@@ -187,7 +187,9 @@ class Cluster(object):
         place for more sophisticated fitting.
 
         :param plot_bar: Whether or not to make a bar graph showing the number of galaxies near each redshift.
+        :param figs_list: the list the figures will be appended to, if they are plotted
         :return: best fitting redshift.
+
         """
         # TODO: I don't know if I really need to do this. I could just do fitting without this starting poitn
         # Initialize empty lists, will append as we go
@@ -218,7 +220,7 @@ class Cluster(object):
                 best_z = z_list[k]
 
         if plot_bar:
-            plotting.plot_initial_redshift_finding(self, z_list, galaxies_list, best_z)
+            figs_list.append(plotting.plot_initial_redshift_finding(self, z_list, galaxies_list, best_z))
 
         if best_z == 0:
             best_z = "0.5"  # TODO: get rid of this once I correct calibration

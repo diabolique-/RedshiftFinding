@@ -262,8 +262,7 @@ def plot_initial_redshift_finding(cluster, z_list, galaxies_list, best_z):
     # Show the cluster's redshift, and the initial redshift the code picked
     bar_ax.axvline(x=cluster.spec_z, c="r", lw=4)
     bar_ax.axvline(x=best_z, c="k", lw=4)
-    plt.savefig(global_paths.initial_z_plots + cluster.name + "_histo.pdf", format="pdf")
-    plt.close(bar_fig)
+    return bar_fig
 
 
 def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, color_red_sequence=True):
