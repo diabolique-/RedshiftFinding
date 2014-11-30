@@ -84,23 +84,24 @@ class Cluster(object):
             else:
                 self._find_location_cut(1.5)  # To do no plotting
 
+        if plot_figures:
+            # Plot initial color mag with predictions
+            figures_list.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
+                                                        distinguish_red_sequence=False))
 
-
+        # do an initial redshift fitting, to get a starting point
         initial_z = self._find_initial_redshift(color, plot_bar=plot_figures, figs_list=figures_list)
 
         # set red sequence cut based on the initial redshift
         self._set_as_rs_member(self.sources_list, initial_z, color, -0.1, 0.1, -1.2, 0.5)
 
-        # If plot_figures is a list, plot and append. If nothing was passed in, this will not trigger.
+
         if plot_figures:
-            # Plot with predictions
-            figures_list.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
-                                                        distinguish_red_sequence=False))
             # Plot the initial cut with RS based on the initial cut
             figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
                                                                 "Fitting", color_red_sequence=True))
-            pass  # So when I comment all the plots out it still runs
 
+        # set color cuts that will be used on the increasingly smaller iterations to refine the fit.
         bluer_color_cut = [-0.25, -0.225, -0.20]
         # if self.name.startswith("MOO1636"):
         #     bluer_color_cut = [-0.2, -0.2, -0.2]  # Override to avoid "foregrounds." Not sure if actually foregrounds

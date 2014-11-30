@@ -18,6 +18,9 @@ START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
+# TODO: see if the color mag plot can be improved by chaning the way the colorbar is created. Rather than giving it its
+# own axis, I would like it to steal from the other axis instead. That looks possible, so see if it works.
+
 # initialize the resources file if it doesn't exist already.
 try:
     open(global_paths.resources, "r")
