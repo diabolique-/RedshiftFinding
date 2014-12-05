@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import cPickle
 
 
-def find_all_objects(enclosing_directories, extensions, files_list):
+def find_all_objects(enclosing_directory, extensions, files_list):
     # DOCUMENTED
     """Recursively search the specified directory (and its subdirectories) for files that end in the desired extension.
 
@@ -23,21 +23,21 @@ def find_all_objects(enclosing_directories, extensions, files_list):
 
 
 
-    for d in enclosing_directories:
-        # Make sure enclosing directory has a finishing /
-        if not d.endswith("/"):
-            d += "/"
-        for f in os.listdir(d):
-            entire_path = d + f
-            # Determine if the item is a directory or not
-            if os.path.isdir(entire_path):
-                # If it is a directory, search through that directory with this function.
-                find_all_objects(entire_path, extensions, files_list)
-                # We don't need to record the output of the function, since the list we pass in will be modified in place.
-            else:
-                for ext in extensions:
-                    if entire_path.endswith(ext):
-                        files_list.append(entire_path)
+
+    # Make sure enclosing directory has a finishing /
+    if not enclosing_directory.endswith("/"):
+        enclosing_directory += "/"
+    for f in os.listdir(enclosing_directory):
+        entire_path = enclosing_directory + f
+        # Determine if the item is a directory or not
+        if os.path.isdir(entire_path):
+            # If it is a directory, search through that directory with this function.
+            find_all_objects(entire_path, extensions, files_list)
+            # We don't need to record the output of the function, since the list we pass in will be modified in place.
+        else:
+            for ext in extensions:
+                if entire_path.endswith(ext):
+                    files_list.append(entire_path)
 
     return files_list
     # We technically don't need to return files_list, since changes in it will be reflected in the main program,

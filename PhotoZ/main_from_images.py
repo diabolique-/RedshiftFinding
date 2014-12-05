@@ -14,7 +14,7 @@ import cPickle
 # note: selecting a lower number will still run everything after it. You may want to start at a later location, for
 # example, if you've already read in catalogs and don't want to waste time doing it again. The code is smart enough to
 # save it's progress after each step, so you don't need to worry about that.
-START_WITH = 2
+START_WITH = 3
 
 # TODO: run images through astrometry.net to correct astrometry.
 

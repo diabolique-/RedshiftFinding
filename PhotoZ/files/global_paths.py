@@ -2,8 +2,8 @@
 # DO NOT FORGET A SLASH ON THINGS THAT ARE SUPPOSED TO BE DIRECTORIES!!
 
 # define a base directory, so you don't have to type the same thing each time
-# base_directory = "/Users/gbbtz7/"
-base_directory = "/Users/gillenbrown/"
+base_directory = "/Users/gbbtz7/"
+# base_directory = "/Users/gillenbrown/"
 
 ########################################################################################################################
 
@@ -30,9 +30,9 @@ catalogs_save_directory = base_directory + "GoogleDrive/Research/Data/Catalogs/G
 
 ########################################################################################################################
 
-# Directories where the code will look for all catalogs. Will search in all subdirectories, like the image search. Don't
+# Directory where the code will look for all catalogs. Will search in all subdirectories, like the image search. Don't
 # forget to include the directory where the SExtractor catalogs were saved.
-catalogs_look_directory = ["/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/"]
+catalogs_look_directory = "/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/"
 
 # Directory for calibration catalogs to be saved to.
 calibration_catalogs_directory = base_directory + "GoogleDrive/Research/Data/SDSS_catalogs"

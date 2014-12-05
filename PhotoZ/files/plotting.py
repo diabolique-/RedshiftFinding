@@ -116,7 +116,6 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
     scalar_map = cmx.ScalarMappable(norm=c_norm, cmap=spectral)
 
     for z in predictions_dict:
-        # Get color
         color_val = scalar_map.to_rgba(predictions_dict[z].redshift)
 
         # Plot the predicted line, with the correct color
@@ -128,11 +127,10 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
                              predictions_dict[z].r_mag - predictions_dict[z].z_mag,
                              color=color_val)
 
-    # Add a color bar # TODO: uncomment this!!! Something is wrong on my home computer, but I don't know what. Will need
-        # to test on the GEG computer to get a good idea if it still works.
-    # scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
-    # fig.colorbar(scalar_map, cax=color_bar_ax)
-    # color_bar_ax.set_ylabel("Redshift")
+    # Add a color bar. It works on GEG computer, but not home computer, for some reason.
+    scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
+    fig.colorbar(scalar_map, cax=color_bar_ax)
+    color_bar_ax.set_ylabel("Redshift")
 
 
 def plot_residuals(cluster):
@@ -212,7 +210,7 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(1, 1, 1)
     # Plot points for individual clusters
-    ax.errorbar(photo, spec, xerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5)
+    ax.errorbar(photo, spec, xerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5, markersize=8)
     # Plot where the best fit line should be
     ax.plot([0.5, 2.5], [0.5, 2.5], "k-", lw=0.5)
     # Plot the best fit line
@@ -234,9 +232,8 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     ax.minorticks_on()
     ax.set_ylabel("Spectroscopic Redshift")
     ax.set_xlabel("Red Sequence Redshift")
-    ax.set_title("Spectroscopic vs Red Sequence Redshifts")
-    ax.set_xlim((0.5, 1.5))
-    ax.set_ylim((0.5, 1.5))
+    ax.set_xlim((0.8, 1.3))
+    ax.set_ylim((0.8, 1.3))
 
     return fig
 

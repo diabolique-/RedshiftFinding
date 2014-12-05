@@ -100,6 +100,7 @@ class Cluster(object):
             # Plot the initial cut with RS based on the initial cut
             figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
                                                                 "Fitting", color_red_sequence=True))
+            pass
 
         # set color cuts that will be used on the increasingly smaller iterations to refine the fit.
         bluer_color_cut = [-0.25, -0.225, -0.20]
@@ -132,8 +133,10 @@ class Cluster(object):
                 return
 
             # Plot most recent redshift estimate
-            figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
-                i+1)))
+            if plot_figures:
+                figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
+                    i+1)))
+                pass
 
             chi_redshift_list = self._fit_redshift_to_sample(sample, color, color[-1])
 
