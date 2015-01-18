@@ -16,7 +16,7 @@ def make_prediction_dictionary(spacing):
 
     # Make the models
     # For simplicity right now, just use the 0.1 gyr exponential model
-    evolved_model = "bc03_exp_0.1_z_0.02_chab_evolved_zf_3.0_ugrizch1ch2.model"
+    evolved_model = "bc03_exp_0.1_z_0.02_chab_evolved_zf_3.0.model"
     default_model = "bc03_exp_0.1_z_0.02_chab.model"
     try:  # to open the evolved model
         model = ezgal.ezgal(evolved_model)
@@ -40,7 +40,8 @@ def make_prediction_dictionary(spacing):
     model.set_normalization(filter='ks', mag=10.9, apparent=True, vega=True, z=0.023)
 
     # Calculate observables in AB mags
-    mags = model.get_apparent_mags(zf, filters=["sloan_r", "sloan_i", "sloan_z", "ch1", "ch2"], zs=zs, vega=False)
+    mags = model.get_apparent_mags(zf, filters=["sloan_r", "sloan_i", "sloan_z", "ch1", "ch2", "f105w", "f140w",
+                                                "f814w"], zs=zs, vega=False)
     # If the filters are changed, then the way the magnitudes are passed into the prediction object needs to be
     # changed as well. That work depends on the index of the specific filters
     # dimensions of mags: [redshifts, filters]

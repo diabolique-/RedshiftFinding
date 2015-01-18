@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/RedshiftFinding.iml" filepath="$PROJECT_DIR$/.idea/RedshiftFinding.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../153Grading/.idea/untitled.iml" filepath="$PROJECT_DIR$/../153Grading/.idea/untitled.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../grading_help/.idea/grading_help.iml" filepath="$PROJECT_DIR$/../grading_help/.idea/grading_help.iml" />
     </modules>
   </component>
 </project>

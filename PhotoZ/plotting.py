@@ -128,9 +128,9 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
                              color=color_val)
 
     # Add a color bar. It works on GEG computer, but not home computer, for some reason.
-    scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
-    fig.colorbar(scalar_map, cax=color_bar_ax)
-    color_bar_ax.set_ylabel("Redshift")
+    # scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
+    # fig.colorbar(scalar_map, cax=color_bar_ax)
+    # color_bar_ax.set_ylabel("Redshift")
 
 
 def plot_residuals(cluster):

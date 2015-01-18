@@ -68,7 +68,3 @@ file.write("# Equivalent redshifts for given filter combinations. Check equivale
            "# r-z to V-I\n" +
            str(redshift_VI_rz))
 
-
-
-
-
