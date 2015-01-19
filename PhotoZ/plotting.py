@@ -1,6 +1,6 @@
 # coding=utf-8
-from PhotoZ.files import predictions
-from PhotoZ.files import global_paths
+from PhotoZ import predictions
+from PhotoZ import global_paths
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol

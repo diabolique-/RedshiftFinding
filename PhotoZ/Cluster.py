@@ -1,8 +1,8 @@
-from PhotoZ.files import plotting
-from PhotoZ.files import functions
-from PhotoZ.files import predictions
+from PhotoZ import plotting
+from PhotoZ import functions
+from PhotoZ import predictions
 import math
-from PhotoZ.files import global_paths
+from PhotoZ import global_paths
 
 
 class Cluster(object):

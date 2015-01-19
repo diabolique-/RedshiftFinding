@@ -1,5 +1,5 @@
-from PhotoZ.files import Cluster
-from PhotoZ.files import functions
+from PhotoZ import Cluster
+from PhotoZ import functions
 
 def _determine_which_cluster(clusters_list, catalog_name):
     # TODO: document

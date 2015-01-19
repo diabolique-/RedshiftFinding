@@ -113,7 +113,7 @@ class Predictions(object):
         self.ch1_mag = ch1_mag
         self.ch2_mag = ch2_mag
         # function assigns slope itself
-        self. rz_line = self._make_line(slope, self.z_mag, self.r_mag - self.z_mag)
+        self.rz_line = self._make_line(slope, self.z_mag, self.r_mag - self.z_mag)
 
     def _make_line(self, slope, l_star_mag, l_star_color):
         """

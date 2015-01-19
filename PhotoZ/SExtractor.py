@@ -2,12 +2,12 @@ import os
 import subprocess
 import matplotlib.pyplot as plt
 from astropy.io import fits
-from PhotoZ.files import functions
-from PhotoZ.files import global_paths
-from PhotoZ.files import SExtractor_functions
-from PhotoZ.files import sdss_calibration
-from PhotoZ.files import other_classes
-from PhotoZ.files import catalog
+from PhotoZ import functions
+from PhotoZ import global_paths
+from PhotoZ import SExtractor_functions
+from PhotoZ import sdss_calibration
+from PhotoZ import other_classes
+from PhotoZ import catalog
 
 
 def sextractor_main(image_paths):

@@ -1,6 +1,6 @@
 
-from PhotoZ.files import plotting
-from PhotoZ.files import global_paths
+from PhotoZ import plotting
+from PhotoZ import global_paths
 import os
 import re
 import math

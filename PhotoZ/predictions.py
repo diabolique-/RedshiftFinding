@@ -1,8 +1,8 @@
 import ezgal
 import numpy as np
 import cPickle
-from PhotoZ.files import other_classes
-from PhotoZ.files import global_paths
+from PhotoZ import other_classes
+from PhotoZ import global_paths
 
 def make_prediction_dictionary(spacing):
     """

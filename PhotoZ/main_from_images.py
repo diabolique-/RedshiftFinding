@@ -1,7 +1,7 @@
-from PhotoZ.files import SExtractor
-from PhotoZ.files import functions
-from PhotoZ.files import global_paths
-from PhotoZ.files import read_in_catalogs
+from PhotoZ import SExtractor
+from PhotoZ import functions
+from PhotoZ import global_paths
+from PhotoZ import read_in_catalogs
 import cPickle
 
 

@@ -1,9 +1,9 @@
-from PhotoZ.files import functions
-from PhotoZ.files import global_paths
-from PhotoZ.files import catalog
-from PhotoZ.files import Cluster
-from PhotoZ.files import other_classes
-from PhotoZ.files import sdss_calibration
+from PhotoZ import functions
+from PhotoZ import global_paths
+from PhotoZ import catalog
+from PhotoZ import Cluster
+from PhotoZ import other_classes
+from PhotoZ import sdss_calibration
 import re
 
 def read_sex_catalogs():

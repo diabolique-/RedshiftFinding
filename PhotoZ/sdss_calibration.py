@@ -1,5 +1,5 @@
 import mechanize
-from PhotoZ.files import functions
+from PhotoZ import functions
 import numpy as np
 
 def sdss_calibration(sex_sources, sdss_sources, band):
