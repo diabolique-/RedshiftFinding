@@ -86,7 +86,7 @@ class Cluster(object):
 
         if plot_figures:
             # Plot initial color mag with predictions
-            figures_list.append(plotting.plot_color_mag(self, color, band=color[-1], predictions=True,
+            figures_list.append(plotting.plot_color_mag(self, color, band=color.split("-")[1], predictions=True,
                                                         distinguish_red_sequence=False))
 
         # do an initial redshift fitting, to get a starting point

@@ -1,0 +1,11 @@
+Things to do when adding a new color combination.
+
+This code currently supports r-z...
+
+To add new ones, here are the things that need to be done.
+
+put filter curves in the ezgal directory for filters, if they aren't default filters
+add the filter data to the filters.txt file
+
+making_slopes.py
+	line 58 - add it to filter pairs, folllowing the format of the ones already there

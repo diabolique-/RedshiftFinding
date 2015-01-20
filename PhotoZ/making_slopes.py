@@ -3,7 +3,7 @@ import numpy.polynomial.polynomial as polynomial
 import numpy as np
 import matplotlib.pyplot as plt
 
-data_path = os.path.dirname(os.path.realpath(__file__)) + '/data/'
+
 
 def equivalent_redshift(coma_filter, distant_filter):
     """
@@ -37,9 +37,10 @@ def equivalent_redshift(coma_filter, distant_filter):
     return ((distant_filter * (1 + 0.023)) / coma_filter) - 1  # Since z_coma = 0.023
 
 
-def make_all_equiv_z(print_results=False):
+def make_all_equiv_z(filter_pairs, print_results=False):
 
     # open the files with Eisenhardt and other filter pivot wavelengths
+    data_path = os.path.dirname(os.path.realpath(__file__)) + '/data/'
     eisenhardt = open((data_path + "Eisenhardt2007filters_effective.txt"), "r")
     # TODO: make these paths part of the package, rahter than be stored elsewhere
     filters_file = open((data_path + "filters.txt"), "r")
@@ -57,7 +58,7 @@ def make_all_equiv_z(print_results=False):
     eisenhardt.close()
     filters_file.close()
 
-    filter_pairs = [("r","z"), ("f814w", "f140w"), ("i", "ch1"), ("ch1", "ch2")]
+
     #These are the filter pairs that will be used to calculate redshifts
 
     filter_redshifts = dict()  # intitialize empty dictionary to be filled
@@ -99,10 +100,19 @@ def make_all_equiv_z(print_results=False):
 
 
 
-def make_slopes():
+def make_slopes(filter_pairs):
+    """
+    Calculate the slope of the red sequence in different filter combinations.
+
+    :param filter_pairs:list of tuples, where each tuple holds two filters that will be used in the redshift fitting.
+        for example, [("r", "z"), ("ch1", "ch2")] would be a valid one.
+    :return:dictionary of keys=filter combinations and values=lambda functions describing the red sequence in that filter
+        as a function of redshift. The given redshift will be input to the lambda function, and the slope of the red
+        sequence will be returned.
+    """
 
     # first get the equivalent redshifts
-    color_equivalent_redshifts = make_all_equiv_z()
+    color_equivalent_redshifts = make_all_equiv_z(filter_pairs)
 
     # here is the data from Eisenhardt 2007
     slopes = [-0.029, -0.055, -0.122] # in order of V-I, B-R, U-V
@@ -122,8 +132,8 @@ def make_slopes():
         fit = polynomial.polyfit(redshifts, slopes, 1, w=weights)  # this returns 2 coefficients (first is constant,
         #  second is coefficient in front of x)
 
-        # turn these coefficients into a lambda function, and put in the dictionary
-        slope_dict[color] = lambda z: fit[0] + z * fit[1]
+        # turn these coefficients into a dictionary
+        slope_dict[color] = {str(round(z, 2)): fit[0] + z * fit[1] for z in np.arange(0, 3, 0.01)}
 
         # # now turn these fits into a line, if we want to plot to check for accuracy
         # x = np.arange(0, 10.0, 0.01)
@@ -141,10 +151,3 @@ def make_slopes():
         # plt.title(color, fontsize=12)
         # plt.show()
     return slope_dict
-
-
-
-
-
-
-make_slopes()

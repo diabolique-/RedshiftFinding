@@ -58,7 +58,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     if predictions:
         color_bar_ax = plt.subplot(whole_plot[0, 1])
         # Plot the predictions now
-        _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax)
+        _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color)
 
     # Now we can plot the points on the CMD (including errors)
     # check to make sure they have something in them
@@ -74,11 +74,11 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     color_mag_ax.set_ylabel(color + " Color")
 
     # Change the scale to match Stanford 14. Each filter set will be different
-    if color == "r-z":
+    if color == "sloan_r-sloan_z":
         color_mag_ax.set_xlim([20, 23.5])  # should be [20, 23.5] Changed to see high redshift better
         # color_mag_ax.set_xlim([20, 26])
         color_mag_ax.set_ylim([0, 3.5])
-    elif color == "i-ch1":
+    elif color == "sloan_i-ch1":
         color_mag_ax.set_xlim([18, 21.5])
         color_mag_ax.set_ylim([-.5, 4.5])
     elif color == "ch1-ch2":
@@ -92,7 +92,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
         return fig
 
 
-def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
+def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
     """
     Plot lines representing the EzGal predictions of the RS for redshifts 0.5 ≤ z ≤ 1.5, with spacing of 0.05.
 
@@ -118,13 +118,20 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
     for z in predictions_dict:
         color_val = scalar_map.to_rgba(predictions_dict[z].redshift)
 
+
+        function = predictions_dict[z].get_lambda(color)
+        xs = np.arange(19, 25, 0.01)
+        ys = [function(x) for x in xs]
+
         # Plot the predicted line, with the correct color
-        color_mag_ax.plot(predictions_dict[z].rz_line.xs, predictions_dict[z].rz_line.ys, color=color_val,
-                          linewidth=0.2)
+        color_mag_ax.plot(xs, ys, color=color_val, linewidth=0.2)
+
+        # turn color into two bands
+        bluer_band, redder_band = color.split("-")
 
         # Plot the points that correspond to L_star projected at those redshifts
-        color_mag_ax.scatter(predictions_dict[z].z_mag,
-                             predictions_dict[z].r_mag - predictions_dict[z].z_mag,
+        color_mag_ax.scatter(predictions_dict[z].mags_dict[redder_band],
+                             predictions_dict[z].mags_dict[bluer_band] - predictions_dict[z].mags_dict[redder_band],
                              color=color_val)
 
     # Add a color bar. It works on GEG computer, but not home computer, for some reason.

@@ -14,7 +14,7 @@ import cPickle
 # note: selecting a lower number will still run everything after it. You may want to start at a later location, for
 # example, if you've already read in catalogs and don't want to waste time doing it again. The code is smart enough to
 # save it's progress after each step, so you don't need to worry about that.
-START_WITH = 1
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -69,7 +69,7 @@ if START_WITH <= 2:
     # find the red sequence redshifts
     for c in cluster_list:
         if c.r_data and c.z_data:
-            c.fit_z("r-z", plot_figures=True)
+            c.fit_z("sloan_r-sloan_z", plot_figures=True)
 
     # save cluster list to disk
     pickle_file3 = open(global_paths.finished_pickle_file, 'w')
