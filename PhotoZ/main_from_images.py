@@ -2,6 +2,7 @@ from PhotoZ import SExtractor
 from PhotoZ import functions
 from PhotoZ import global_paths
 from PhotoZ import read_in_catalogs
+from PhotoZ import config_data
 import cPickle
 
 
@@ -35,8 +36,6 @@ if START_WITH == 0:
     # Find all images in the desired directory. Will have a list of file paths.
     image_list = functions.find_all_objects(global_paths.images_directory, [".fits"], [])
 
-    # DOCUMENTED TO HERE
-
     SExtractor.sextractor_main(image_list)
 
     print "\nDone with SExtractor\n"
@@ -68,8 +67,9 @@ if START_WITH <= 2:
 
     # find the red sequence redshifts
     for c in cluster_list:
-        if c.r_data and c.z_data:
-            c.fit_z("sloan_r-sloan_z", plot_figures=True)
+        for pair in config_data.filter_pairs:
+            if pair[0] in c.bands and pair[1] in c.bands:
+                c.fit_z("-".join(pair), plot_figures=True)
 
     # save cluster list to disk
     pickle_file3 = open(global_paths.finished_pickle_file, 'w')
@@ -80,11 +80,11 @@ if START_WITH <= 2:
 if START_WITH == 3:
     cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
 
-# fit a correction
-functions.fit_correction(cluster_list, "r-z", read_in=False, plot=True)
-
-# write results to a file
-functions.write_results(cluster_list)
+# # fit a correction
+# functions.fit_correction(cluster_list, "r-z", read_in=False, plot=True)
+#
+# # write results to a file
+# functions.write_results(cluster_list)
 
 # TODO: look at clusters that calibration doens't work for. Use the crossID thing in SDSS to see if there really
 # aren't stars there.

@@ -36,11 +36,7 @@ class Cluster(object):
 
         self.sources_list = sources_list
 
-        self.r_data = False
-        self.i_data = False
-        self.z_data = False
-        self.ch1_data = False
-        self.ch2_data = False
+        self.bands = set([])  # have empty set. Will add as bands are added
         self.rs_z = dict()
         self.upper_photo_z_error = dict()
         self.lower_photo_z_error = dict()
@@ -101,6 +97,8 @@ class Cluster(object):
             figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
                                                                 "Fitting", color_red_sequence=True))
             pass
+
+        # works to here
 
         # set color cuts that will be used on the increasingly smaller iterations to refine the fit.
         bluer_color_cut = [-0.25, -0.225, -0.20]
@@ -205,6 +203,7 @@ class Cluster(object):
             rs_members = 0
             self._set_as_rs_member(self.sources_list, z, color, -0.1, 0.1, -1.2, 0.5)  # 3rd spot could be -2.0
             for source in self.sources_list:
+                # print source.RS_member, source.in_location
                 if source.RS_member and source.in_location:
                     rs_members += 1
 
@@ -295,14 +294,17 @@ class Cluster(object):
         for source in self.sources_list:
             source.RS_member = False
 
-        band = color[-1]
+        band = color.split("-")[1]
 
         self._set_residuals(redshift, color)
         for source in sources:
-            if (band in source.mags and self.predictions_dict[redshift].z_mag + bright_mag_cut <
-                    source.mags[band] < self.predictions_dict[redshift].z_mag + faint_mag_cut and
-                    bluer_color_residual_cut < source.color_residual < redder_color_residual_cut
-                and source.colors[color].error <= 0.2):
+
+            if (band in source.mags and color in source.colors and source.colors[color].error <= 0.2 and
+                self.predictions_dict[redshift].mags_dict[band] + bright_mag_cut < source.mags[band] <
+                self.predictions_dict[redshift].mags_dict[band] + faint_mag_cut and
+                bluer_color_residual_cut < source.color_residual < redder_color_residual_cut ):
+
+
                 source.RS_member = True
 
     def _set_residuals(self, redshift, color):
@@ -313,14 +315,15 @@ class Cluster(object):
         :return: none, but instance attributes are changed in galaxy objects.
         """
 
-        band = color[-1]
+        band = color.split("-")[1]
 
-        best_z_line = self.predictions_dict[redshift].rz_line
+        best_z_line = self.predictions_dict[redshift].get_lambda(color)
         for source in self.sources_list:
             if band in source.mags and color in source.colors:
                 if 18 < source.mags[band] < 30:  # The line used doesn't extend beyond these points.
-                    idx = best_z_line.xs.index(round(source.mags[band].value, 2))
-                    source.color_residual = source.colors[color].value - best_z_line.ys[idx]
+                    # idx = best_z_line.xs.index(round(source.mags[band].value, 2))
+                    # source.color_residual = source.colors[color].value - best_z_line.ys[idx]
+                    source.color_residual = source.colors[color].value - best_z_line(source.mags[band].value)
                 else:
                     source.color_residual = 999
             else:

@@ -4,8 +4,8 @@ import os
 # DO NOT FORGET A SLASH ON THINGS THAT ARE SUPPOSED TO BE DIRECTORIES!!
 
 # define a base directory, so you don't have to type the same thing each time
-# base_directory = "/Users/gbbtz7/"
-base_directory = "/Users/gillenbrown/"
+base_directory = "/Users/gbbtz7/"
+# base_directory = "/Users/gillenbrown/"
 
 #this will return the directory of the module itself. DO NOT CHANGE THIS LINE
 home_directory = os.path.dirname(os.path.realpath(__file__)) + "/"  # DO NOT CHANGE.

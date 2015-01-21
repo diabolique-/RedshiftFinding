@@ -49,7 +49,7 @@ def make_prediction_dictionary(spacing):
     if build:
         # the location may need to be changed to support different locations.
         # TODO: find the correct location automatically
-        model.save_model("/Library/Python/2.7/site-packages/ezgal/data/models/"+evolved_model)
+        model.save_model("/usr/local/scisoft/packages/python/lib/python2.6/site-packages/ezgal/data/models/"+evolved_model)
 
     # change redshifts to string format, so they don't get floating point errors
     zs = [str(round(z, 2)) for z in zs]

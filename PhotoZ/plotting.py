@@ -135,9 +135,9 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
                              color=color_val)
 
     # Add a color bar. It works on GEG computer, but not home computer, for some reason.
-    # scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
-    # fig.colorbar(scalar_map, cax=color_bar_ax)
-    # color_bar_ax.set_ylabel("Redshift")
+    scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
+    fig.colorbar(scalar_map, cax=color_bar_ax)
+    color_bar_ax.set_ylabel("Redshift")
 
 
 def plot_residuals(cluster):
@@ -277,13 +277,17 @@ def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, colo
     :param other_info: Info that will go into the subtitle.
     :return: figure holding the plot
     """
-    fig, ax = plot_color_mag(cluster, color=color, band=band, predictions=False,
+    bluer_band, redder_band = color.split("-")
+    fig, ax = plot_color_mag(cluster, color=color, band=redder_band, predictions=False,
                                                                       distinguish_red_sequence=color_red_sequence,
                              return_axis=True)
-    line = cluster.predictions_dict[redshift].rz_line
-    ax.plot(line.xs, line.ys, "k-", linewidth=0.5, label="Initial z")
-    ax.scatter(cluster.predictions_dict[redshift].z_mag, cluster.predictions_dict[redshift].r_mag -
-               cluster.predictions_dict[redshift].z_mag, c="r", s=10)  # Plot characteristic magnitude point
+    line = cluster.predictions_dict[redshift].get_lambda(color)
+    mags = np.arange(10, 30, 0.01)
+    colors = [line(mag) for mag in mags]
+    ax.plot(mags, colors, "k-", linewidth=0.5, label="Initial z")
+    ax.scatter(cluster.predictions_dict[redshift].mags_dict[redder_band], cluster.predictions_dict[redshift].mags_dict[
+               bluer_band] - cluster.predictions_dict[redshift].mags_dict[redder_band], c="r", s=10)
+                # Plot characteristic magnitude point
     fig.suptitle(cluster.name + ", current z=" + str(redshift))
     ax.set_title(str(other_info), fontsize=10)
 

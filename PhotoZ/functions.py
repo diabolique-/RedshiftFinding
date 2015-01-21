@@ -65,7 +65,7 @@ def make_cluster_name(filename):
     known_catalogs = re.compile("m[0-9]{4}(p|m)[0-9]{4}[.]phot[.]dat")
     # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
 
-    my_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]cat")
+    my_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_sloan_(r|z)[.]cat")
     # This is the format my code outputs SExtractor catalogs with.
 
     gemini_images = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]fits")
@@ -76,7 +76,7 @@ def make_cluster_name(filename):
     keck = re.compile(r"m[0-9]{4}(p|m)[0-9]{4}[.]zr[.]cat")
 
     if my_catalog.match(name):
-        return name[0:-6]  # Don't include band or extension
+        return name[0:12]  # Don't include band or extension
     elif gemini_images.match(name):
         return name[0:-7]  # Don't include band or extension
     elif irac.match(name):
@@ -108,19 +108,19 @@ def make_cluster_name(filename):
     return "not working"
 
 
-
-def get_band_from_filename(filename):
-    # DOCUMENTED
-    """Finds the band of an image or catalog based on the filename.
-
-    Assumes file names are of the form object_name_band.extension
-
-    :param filename: string with the filename
-    :return: string containing the band
-    """
-    file_no_extension = filename.split(".")[0]  # first thing before a .
-    band = file_no_extension.split("_")[-1]  # the band will be the last thing in the name itself
-    return band
+# TODO: delete this function? whould
+# def get_band_from_filename(filename):
+#     # DOCUMENTED
+#     """Finds the band of an image or catalog based on the filename.
+#
+#     Assumes file names are of the form object_name_band.extension
+#
+#     :param filename: string with the filename
+#     :return: string containing the band
+#     """
+#     file_no_extension = filename.split(".")[0]  # first thing before a .
+#     band = file_no_extension.split("_")[-1]  # the band will be the last thing in the name itself
+#     return band
 
 def distance(x1, x2, y1, y2):
     """Uses the distance formula to calculate the distance between 2 objects

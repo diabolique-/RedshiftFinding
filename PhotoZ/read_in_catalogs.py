@@ -31,7 +31,7 @@ def read_sex_catalogs():
             cluster_list.append(this_cluster)
 
         # Use regular expressions to determine what type a catalog is.
-        sextractor_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]cat")
+        sextractor_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_sloan_(r|z)[.]cat")
         # MOO, 4 digits, + or -, 4 more digits, _, r or z, .cat
 
         gemini_catalog = re.compile(r"m[0-9]{4}(p|m)[0-9]{4}[.]phot[.]dat")
@@ -44,15 +44,10 @@ def read_sex_catalogs():
 
         if sextractor_catalog.match(cat_filename):  # If it is a SExtractor catalog
             # find the band the catalog has data for
-            band = functions.get_band_from_filename(cat_filename)
+            band = cat_filename[13:-4]
 
             # tell the cluster it has data in this band
-            if band == "r":
-                this_cluster.r_data = True
-            elif band == "i":
-                this_cluster.i_data = True
-            elif band == "z":
-                this_cluster.z_data = True
+            this_cluster.bands.add(band)
 
             # Read in the catalog
             cat_table = catalog.read_catalog(cat, ["ALPHA_J2000", "DELTA_J2000", "MAG_APER", "MAGERR_APER", "NUMBER"],
@@ -61,9 +56,9 @@ def read_sex_catalogs():
             # Match sources to existing ones in the cluster
             for line in cat_table:
                 # Create a source object based on the band
-                if band == "r":
+                if band == "sloan_r":
                     this_source = other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]], r_id=line[4])
-                elif band == "z":
+                elif band == "sloan_z":
                     this_source = other_classes.Source(line[0], line[1], [band], [line[2]], [line[3]], z_id=line[4])
 
                 # see if an object with a matching IS number already exists in the cluster sources_list
@@ -89,17 +84,17 @@ def read_sex_catalogs():
             # find the bands in the catalog, and let the cluster know it has data in these bands
             band_labels = catalog.get_column_labels(cat, [3, 4])
             if band_labels[1] == 'rmz':
-                band = 'z'
-                this_cluster.r_data = True
-                this_cluster.z_data = True
+                band = 'sloan_z'
+                this_cluster.bands.add("sloan_z")
+                this_cluster.bands.add("sloan_r")
             elif band_labels[1] == 'imch1':
                 band = 'ch1'
-                this_cluster.i_data = True
-                this_cluster.ch1_data = True
+                this_cluster.bands.add("sloan_i")
+                this_cluster.bands.add("ch1")
             elif band_labels[1] == 'ch1mch2':
                 band = 'ch2'
-                this_cluster.ch1_data = True
-                this_cluster.ch2_data = True
+                this_cluster.bands.add("ch1")
+                this_cluster.bands.add("ch2")
 
             # Convert them to source objects
             # I don't worry about adding each source at once, since clusters that are from these catalogs will not be
@@ -116,8 +111,8 @@ def read_sex_catalogs():
                                              label_row=0, data_start=1, filters=["zflag < 4", "rflag < 4"])
 
             # let the cluster know it has data in r and z
-            this_cluster.r_data = True
-            this_cluster.z_data = True
+            this_cluster.bands.add("sloan_r")
+            this_cluster.bands.add("sloan_z")
 
             # convert to source objects
             this_cluster.sources_list = [other_classes.Source(line[0], line[1], ["r", "z"], mags=[line[4], line[2]],

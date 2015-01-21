@@ -6,6 +6,9 @@ To add new ones, here are the things that need to be done.
 
 put filter curves in the ezgal directory for filters, if they aren't default filters
 add the filter data to the filters.txt file
+add the filter and its color combinations to the config_data.py file, following the examples already there
 
-making_slopes.py
-	line 58 - add it to filter pairs, folllowing the format of the ones already there
+add a way for the code to read in the catalogs
+	do that in the function read_sex_catalogs() in read_in_catalogs.py
+	look at the already existing pathways to see the best way to go
+add a way for it to determine the name of the clusters
