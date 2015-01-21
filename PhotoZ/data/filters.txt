@@ -1,13 +1,13 @@
 #refer to http://www.baryons.org/ezgal/filters.php
 #use filter names that match the name of the filter transmission curve used by exgal
-#filter 	pivot
-sloan_u	3556
-sloan_g	4702
+#filter 	pivot_wavelength
+sloan_u		3556
+sloan_g		4702
 sloan_r 	6175
-sloan_i	7489
-sloan_z	8946
-ch1	35569
-ch2	45020
+sloan_i		7489
+sloan_z		8946
+ch1		35569
+ch2		45020
 wfc3_f814w	8026
 wfc3_f105w	10550
 wfc3_f140w	13922

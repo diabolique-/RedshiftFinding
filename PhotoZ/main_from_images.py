@@ -23,13 +23,13 @@ START_WITH = 2
 # own axis, I would like it to steal from the other axis instead. That looks possible, so see if it works.
 
 # initialize the resources file if it doesn't exist already.
-try:
-    open(global_paths.resources, "r")
-except IOError:
-    print "making new resources file"
-    resources = open(global_paths.resources, "w")
-    cPickle.dump(dict(), resources, -1)
-    resources.close()
+# try:
+#     open(global_paths.resources, "r")
+# except IOError:
+#     print "making new resources file"
+#     resources = open(global_paths.resources, "w")
+#     cPickle.dump(dict(), resources, -1)
+#     resources.close()
 
 if START_WITH == 0:
     print "Starting SExtractor\n"
@@ -67,24 +67,27 @@ if START_WITH <= 2:
 
     # find the red sequence redshifts
     for c in cluster_list:
-        for pair in config_data.filter_pairs:
-            if pair[0] in c.bands and pair[1] in c.bands:
-                c.fit_z("-".join(pair), plot_figures=True)
+        for color in config_data.fitted_colors:
+            bluer_color, redder_color = color.split("-")
+            if bluer_color in c.bands and redder_color in c.bands:
+                c.fit_z(color, plot_figures=True)
 
     # save cluster list to disk
     pickle_file3 = open(global_paths.finished_pickle_file, 'w')
     cPickle.dump(cluster_list, pickle_file3, -1)
     pickle_file3.close()
 
+    print "\nDone fitting.\n"
+
 
 if START_WITH == 3:
     cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
 
-# # fit a correction
-# functions.fit_correction(cluster_list, "r-z", read_in=False, plot=True)
+# fit the corrections
+functions.fit_corrections(cluster_list, read_in=True, plot=True)
 #
-# # write results to a file
-# functions.write_results(cluster_list)
+# write results to a file
+functions.write_results(cluster_list)
 
 # TODO: look at clusters that calibration doens't work for. Use the crossID thing in SDSS to see if there really
 # aren't stars there.

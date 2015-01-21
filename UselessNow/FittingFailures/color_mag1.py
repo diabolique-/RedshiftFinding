@@ -8,7 +8,7 @@ def color_mag(color, mag, color_err=0, mag_err=0, title="Color Magnitude Diagram
               y_label="r-z Color", directory="/Users/gbbtz7/GoogleDrive/Research/Plots/", filename="", multipage=False):
     """ Make a color magnitude diagram and saves it in the directory specified.
 
-    :param color: list of colors
+    :param color: list of fitted_colors
     :param mag: list of magnitudes, must be same length as color
     :param color_err: list of errors in color. Must be same length as color and mag
     :param mag_err: list of errors in mag. Must be same length as all other lists

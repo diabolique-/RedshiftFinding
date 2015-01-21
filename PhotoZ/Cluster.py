@@ -94,11 +94,11 @@ class Cluster(object):
 
         if plot_figures:
             # Plot the initial cut with RS based on the initial cut
-            figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], initial_z, other_info="Initial "
+            figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], initial_z,
+                                                                other_info="Initial "
                                                                 "Fitting", color_red_sequence=True))
             pass
 
-        # works to here
 
         # set color cuts that will be used on the increasingly smaller iterations to refine the fit.
         bluer_color_cut = [-0.25, -0.225, -0.20]
@@ -132,11 +132,11 @@ class Cluster(object):
 
             # Plot most recent redshift estimate
             if plot_figures:
-                figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], best_z, other_info="Cut " + str(
-                    i+1)))
+                figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], best_z,
+                                                                    other_info="Cut " + str(i+1)))
                 pass
 
-            chi_redshift_list = self._fit_redshift_to_sample(sample, color, color[-1])
+            chi_redshift_list = self._fit_redshift_to_sample(sample, color, color.split("-")[1])
 
             best_z, z_lower_error, z_upper_error = self._get_stats_from_chi(chi_redshift_list)
 
@@ -163,7 +163,7 @@ class Cluster(object):
 
         # Plot final redshift on CMD
         if plot_figures:
-            figures_list.append(plotting.plot_fitting_procedure(self, color, color[-1], self.rs_z[color],
+            figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], self.rs_z[color],
                                                                 "Final Redshift", color_red_sequence=True))
             figures_list.append(plotting.plot_location(self))
             pass # again so I can comment out plots if I want
@@ -174,7 +174,7 @@ class Cluster(object):
         functions.save_as_one_pdf(figures_list, global_paths.plots + str(self.name) + ".pdf")
 
 
-        print self, self.rs_z[color]
+        print self, color, self.rs_z[color]
 
 
 
@@ -236,7 +236,7 @@ class Cluster(object):
         chi_squared_redshift_pairs = []
         for z in sorted(self.predictions_dict.iterkeys()):  # redshifts in order, so we can look at chi distribution
             temp_chi_squared = predictions.simple_chi_square(galaxies, color, band, self.predictions_dict[
-                z].rz_line)
+                z].get_lambda(color))
             chi_squared_redshift_pairs.append((z, temp_chi_squared))
 
         return chi_squared_redshift_pairs
@@ -320,12 +320,8 @@ class Cluster(object):
         best_z_line = self.predictions_dict[redshift].get_lambda(color)
         for source in self.sources_list:
             if band in source.mags and color in source.colors:
-                if 18 < source.mags[band] < 30:  # The line used doesn't extend beyond these points.
-                    # idx = best_z_line.xs.index(round(source.mags[band].value, 2))
-                    # source.color_residual = source.colors[color].value - best_z_line.ys[idx]
-                    source.color_residual = source.colors[color].value - best_z_line(source.mags[band].value)
-                else:
-                    source.color_residual = 999
+                source.color_residual = source.colors[color].value - best_z_line(source.mags[band].value)
+
             else:
                 source.color_residual = 999
 
@@ -389,27 +385,35 @@ class Cluster(object):
         # create the labels at the top (with fixed widths)
         rs_catalog.write("{:13s} {:13s}".format("#ra", "dec"))
         # Only include labels for bands if the cluster actually has data in that band
-        if self.r_data:
-            rs_catalog.write("{:10s} {:8s}".format("r_mag", "r_err"))
-        if self.z_data:
-            rs_catalog.write("{:10s} {:8s}".format("z_mag", "z_err"))
+        for band in sorted(self.bands):
+            rs_catalog.write("{:12s} {:12s}".format(band+"_mag", band+"_err"))
         rs_catalog.write("rs_member\n")
 
         # Iterate through the sources in the cluster, and put their data in the file too.
-        for source in self.sources_list:
+        for source in sorted(self.sources_list):
             rs_catalog.write("{:13s} {:13s}".format(str(source.ra), str(source.dec)))
-            if self.r_data:
+            for band in self.bands:
                 try:
-                    rs_catalog.write("{:10s} {:8s}".format(str(source.mags["r"].value), str(round(source.mags[
-                                                                                                "r"].error, 4))))
+                    rs_catalog.write("{:12s} {:12s}".format(str(source.mags[band].value),
+                                                           str(round(source.mags[band].error, 4))))
                 except KeyError:
-                    rs_catalog.write("{:10s} {:8s}".format(" ", " "))
-            if self.z_data:
-                try:
-                    rs_catalog.write("{:10s} {:8s}".format(str(source.mags["z"].value), str(round(source.mags[
-                                                                                                "z"].error, 4))))
-                except KeyError:
-                    rs_catalog.write("{:10s} {:8s}".format(" ", " "))
+                    rs_catalog.write("{:12s} {:12s}".format(" ", " "))
+
+
+
+
+            # if self.r_data:
+            #     try:
+            #         rs_catalog.write("{:10s} {:8s}".format(str(source.mags["r"].value), str(round(source.mags[
+            #                                                                                     "r"].error, 4))))
+            #     except KeyError:
+            #         rs_catalog.write("{:10s} {:8s}".format(" ", " "))
+            # if self.z_data:
+            #     try:
+            #         rs_catalog.write("{:10s} {:8s}".format(str(source.mags["z"].value), str(round(source.mags[
+            #                                                                                     "z"].error, 4))))
+            #     except KeyError:
+            #         rs_catalog.write("{:10s} {:8s}".format(" ", " "))
             if source.RS_member:
                 rs_catalog.write("1")
             else:

@@ -85,14 +85,17 @@ def read_sex_catalogs():
             band_labels = catalog.get_column_labels(cat, [3, 4])
             if band_labels[1] == 'rmz':
                 band = 'sloan_z'
+                color = "sloan_r-sloan_z"
                 this_cluster.bands.add("sloan_z")
                 this_cluster.bands.add("sloan_r")
             elif band_labels[1] == 'imch1':
                 band = 'ch1'
+                color = "sloan_i-ch1"
                 this_cluster.bands.add("sloan_i")
                 this_cluster.bands.add("ch1")
             elif band_labels[1] == 'ch1mch2':
                 band = 'ch2'
+                color = "ch1-ch2"
                 this_cluster.bands.add("ch1")
                 this_cluster.bands.add("ch2")
 
@@ -100,7 +103,7 @@ def read_sex_catalogs():
             # I don't worry about adding each source at once, since clusters that are from these catalogs will not be
             #  used with any other catalogs. They are independent.
             this_cluster.sources_list = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]],
-                                                              mag_errors=[0], color_bands=[band_labels[1]],
+                                                              mag_errors=[0], color_bands=[color],
                                                               color_values=[line[3]], color_errors=[line[4]])
                                          for line in cat_table]
 

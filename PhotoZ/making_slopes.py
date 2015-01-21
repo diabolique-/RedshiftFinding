@@ -37,7 +37,7 @@ def equivalent_redshift(coma_filter, distant_filter):
     return ((distant_filter * (1 + 0.023)) / coma_filter) - 1  # Since z_coma = 0.023
 
 
-def make_all_equiv_z(filter_pairs, print_results=False):
+def make_all_equiv_z(colors, print_results=False):
 
     # open the files with Eisenhardt and other filter pivot wavelengths
     data_path = os.path.dirname(os.path.realpath(__file__)) + '/data/'
@@ -63,10 +63,10 @@ def make_all_equiv_z(filter_pairs, print_results=False):
 
     filter_redshifts = dict()  # intitialize empty dictionary to be filled
 
-    for filter_pair in filter_pairs:
+    for filter_pair in colors:
 
-        shorter_filter_wavelength = filters[filter_pair[0]]
-        longer_filter_wavelength = filters[filter_pair[1]]
+        shorter_filter_wavelength = filters[filter_pair.split("-")[0]]
+        longer_filter_wavelength = filters[filter_pair.split("-")[1]]
 
        # find the redshift where the filter sees V-I
         first_VI_z = equivalent_redshift(filters["V"], shorter_filter_wavelength)
@@ -92,7 +92,7 @@ def make_all_equiv_z(filter_pairs, print_results=False):
             print first_BR_z, second_BR_z, BR_z
             print first_UV_z, second_UV_z, UV_z
 
-        filter_redshifts["-".join(filter_pair)] = (VI_z, BR_z, UV_z)  # put the results into a dictionary
+        filter_redshifts[filter_pair] = (VI_z, BR_z, UV_z)  # put the results into a dictionary
 
     return filter_redshifts
 
@@ -100,19 +100,19 @@ def make_all_equiv_z(filter_pairs, print_results=False):
 
 
 
-def make_slopes(filter_pairs):
+def make_slopes(colors):
     """
     Calculate the slope of the red sequence in different filter combinations.
 
-    :param filter_pairs:list of tuples, where each tuple holds two filters that will be used in the redshift fitting.
-        for example, [("r", "z"), ("ch1", "ch2")] would be a valid one.
+    :param colors:strings that are filter combinations of the form [bluer filter]-[redder filter]. Check config_data.py
+    for examples.
     :return:dictionary of keys=filter combinations and values=lambda functions describing the red sequence in that filter
         as a function of redshift. The given redshift will be input to the lambda function, and the slope of the red
         sequence will be returned.
     """
 
     # first get the equivalent redshifts
-    color_equivalent_redshifts = make_all_equiv_z(filter_pairs)
+    color_equivalent_redshifts = make_all_equiv_z(colors)
 
     # here is the data from Eisenhardt 2007
     slopes = [-0.029, -0.055, -0.122] # in order of V-I, B-R, U-V

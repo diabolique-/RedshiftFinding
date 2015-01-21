@@ -79,9 +79,15 @@ def simple_chi_square(sources, color, band, model_line):
     # Initialize some placeholders
     chi_sq = 0
     for source in sources:
-        # find color model predictions for the galaxy at the given magnitude
-        idx = model_line.xs.index(round(source.mags[band].value, 2))
-        chi_sq += ((model_line.ys[idx] - source.colors[color].value) / source.colors[color].error)**2
+        chi_sq += ((model_line(source.mags[band].value) - source.colors[color].value) / source.colors[color].error)**2
+
+
+
+
+
+        # # find color model predictions for the galaxy at the given magnitude
+        # idx = model_line.xs.index(round(source.mags[band].value, 2))
+        # chi_sq += ((model_line.ys[idx] - source.colors[color].value) / source.colors[color].error)**2
     # Reduced chi squared takes the total chi squared value and divides by degrees of freedom.
     # Degrees of freedom = number of data points - number of parameters (redshift, in this case) - 1
     return chi_sq / (len(sources) - 1 - 1)

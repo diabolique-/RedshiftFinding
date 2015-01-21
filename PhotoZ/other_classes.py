@@ -98,7 +98,7 @@ class Predictions(object):
     """
 
     #get slopes for all redshifts
-    slope_dict = making_slopes.make_slopes(config_data.filter_pairs)
+    slope_dict = making_slopes.make_slopes(config_data.fitted_colors)
 
     def __init__(self, redshift, mags):
         """

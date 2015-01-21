@@ -70,8 +70,8 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
                               markersize=5)  # Only difference is that this is plotted in red.
 
     color_mag_ax.set_title(cluster.name)
-    color_mag_ax.set_xlabel(band + " Band Magnitude")
-    color_mag_ax.set_ylabel(color + " Color")
+    color_mag_ax.set_xlabel(band)
+    color_mag_ax.set_ylabel(color)
 
     # Change the scale to match Stanford 14. Each filter set will be different
     if color == "sloan_r-sloan_z":
@@ -120,7 +120,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
 
 
         function = predictions_dict[z].get_lambda(color)
-        xs = np.arange(19, 25, 0.01)
+        xs = np.arange(17, 25, 0.01)
         ys = [function(x) for x in xs]
 
         # Plot the predicted line, with the correct color
@@ -239,6 +239,7 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     ax.minorticks_on()
     ax.set_ylabel("Spectroscopic Redshift")
     ax.set_xlabel("Red Sequence Redshift")
+    ax.set_title(color)
     ax.set_xlim((0.8, 1.3))
     ax.set_ylim((0.8, 1.3))
 

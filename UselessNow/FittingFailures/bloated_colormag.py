@@ -98,8 +98,8 @@ def add_histogram(colors, filters, histogram_ax):
     """
     Adds a color histogram to the color-magnitude diagram.
 
-    :param colors: list of colors that will be turned into a histogram
-    :param filters: list of filters that the colors are in. Will be used to set limits and labels
+    :param colors: list of fitted_colors that will be turned into a histogram
+    :param filters: list of filters that the fitted_colors are in. Will be used to set limits and labels
     :return: none. The histogram_ax is modified in place
     """
 
