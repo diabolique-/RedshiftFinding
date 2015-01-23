@@ -1,0 +1,36 @@
+read in one mega catalog.
+	that will make read-in easier, as well as making sure I don't have to do any ugly matching or anything like that.
+	it will also allow the catalog headers to match bands, and so make the process way easier than it was before.
+
+have a function to make a mega catalog
+	do the things with matching sources that Mark uses
+		see if there is an offset first, then match closest pairs
+			maybe provide the user with a plot showing the pairs that will be matced, to verify that it is working correctly
+	make sure the headers are formatted properly (ie with names that match the band names used by exGal)
+
+have the red sequence be dependent on bands
+	that way galaxies can be in the red sequence in multiple bands, or none
+	red sequence catalog output can specify which bands the galaxies are red sequence members in
+		can sort the catalog by galaxies that are in the most red sequences, which will presumably be some of the better galaxies to target in spectroscopy
+
+Slopes
+	make sure the fit goes exaclty through each point of known slope.
+		use cubic splines
+	use each slope provided by Eisenhardt, but use some criteria to see if the user's filter combination will see Eisenhard't filter well, and if so, include that in the fit to determing the RS slope.
+
+see if there is an existing way that someone has made to represent data with errors in Python, or I should just go with my made one
+
+delete line class, I don't think I need it
+
+handle the different color cuts in the fitting process with a dictionary (keys=color, values=list of color cuts (or however I currently do it))
+	code:
+		if color in cuts_dict:
+			cuts = cust_dict[color]
+		else:
+			cuts = cuts_dict[default]
+	could also use try/except block, might be faster
+
+change the way I handle filters that the user wants to use
+	I have a config.py file that holds filters, but also have a .txt file that holds pivot wavelengths
+	I can probably combine those two things somehow to make life easier for the user
+		less for them to do when adding new bands, at least. 

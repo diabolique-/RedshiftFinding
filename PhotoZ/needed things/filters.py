@@ -6,6 +6,7 @@ from scipy.integrate import simps
 import matplotlib.pyplot as plt
 import numpy as np
 from PhotoZ import global_paths
+from PhotoZ import config_data
 
 #def find_effective_wavelength():
 # Open file for reading
@@ -71,11 +72,11 @@ file = open(global_paths.home_directory + "data/Eisenhardt2007_filters_pivot.txt
 
 
 # set up a figure
-fig = plt.figure(figsize=(15, 5))
-ax = fig.add_subplot(1, 1, 1)
+fig = plt.figure(figsize=(15, 11))
+e_ax = plt.subplot2grid((2,1), (0, 0))
 fig.subplots_adjust(left=0.08, right=0.94)
 
-colors = ["r", "0.4", "b", "c", "m", "y", "k", "g", "g", "0.8", "k"]
+colors = ["r", "g", "0.4", "b", "c", "m", "y", "k", "g", "0.8", "0.1", "r", "g", "b", "c", "m", ]
 
 
 # Now can find effective wavelengths
@@ -93,21 +94,57 @@ for f in filter_list:
     file.write(filter_list_names[i] + "\t" + str(pivot) + "\n")
 
     # Plot the filter response curve
-    ax.semilogx(f.keys(), f.values(), c=colors[i], label=filter_list_names[i])
+    e_ax.semilogx(f.keys(), f.values(), c=colors[i], label=filter_list_names[i])
+
+    # Add a vertical line at the right place for the effective wavelength
+    e_ax.axvline(pivot, c=colors[i], linestyle="--")
+    i += 1
+# Add titles and labels
+e_ax.set_title("Eisenhardt")
+e_ax.set_ylabel("Response")
+e_ax.set_xlabel("Wavelength [Angstroms]")
+plt.legend(loc=0)
+e_ax.set_ylim([0, 1.0])
+
+
+# do this for science filters
+ax =plt.subplot2grid((2,1), (1, 0))
+
+filter_list = config_data.filters_list
+filters_path = "/usr/local/scisoft/packages/python/lib/python2.6/site-packages/ezgal/data/filters/" # may need to change
+for i, f in enumerate(filter_list):
+    filter_file = open(filters_path + f)
+    wavelengths, respones = [], []
+    for line in filter_file:
+        wavelengths.append(float(line.split()[0]))
+        respones.append(float(line.split()[1]))
+
+    # normalize respones
+    respones = [r / max(respones) for r in respones]
+
+    numerator = [respones[k] * wavelengths[k] for k in range(len(respones))]
+    denominator = [respones[k] / wavelengths[k] for k in range(len(respones))]
+    pivot = np.sqrt((simps(numerator, wavelengths))/simps(denominator, wavelengths))
+    # Plot the filter response curve
+    ax.semilogx(wavelengths, respones,c=colors[i], label=f, linewidth=1.5)
 
     # Add a vertical line at the right place for the effective wavelength
     ax.axvline(pivot, c=colors[i], linestyle="--")
     i += 1
 
+
 plt.legend(loc=0)
 ax.set_ylim([0, 1.0])
 
 # Add titles and labels
-ax.set_title("Filter Response Curves and Effective Wavelength from Eisenhardt 2007")
+ax.set_title("Others")
 ax.set_ylabel("Response")
 ax.set_xlabel("Wavelength [Angstroms]")
 #ax.set_xlim([3000, 10000])
 fig.savefig("/Users/gbbtz7/GoogleDrive/Research/Plots/filter_response.pdf", format="pdf")
+
+
+
 
 
 
