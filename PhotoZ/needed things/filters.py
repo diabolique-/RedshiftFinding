@@ -2,22 +2,21 @@
 
 # It's a little sloppy. This is only used to create the file with effective wavelenths.
 import collections
+from scipy.integrate import simps
 import matplotlib.pyplot as plt
+import numpy as np
+from PhotoZ import global_paths
 
 #def find_effective_wavelength():
 # Open file for reading
-Eisenhardt_data = open("/Users/gbbtz7/GoogleDrive/Research/Data/Eisenhardt2007filters", "r")
-sloan_r_data = open("/Library/Python/2.7/site-packages/ezgal/data/filters/sloan_r", "r")
-sloan_z_data = open("/Library/Python/2.7/site-packages/ezgal/data/filters/sloan_z")
+Eisenhardt_data = open(global_paths.home_directory + "data/Eisenhardt2007filters.txt", "r")
+
 
 # Initialize empty ordered dictionaries that will store the information for each filter
 # Keys are wavelength, values are filter response at that wavelength
-U, B, V, R, I, z, J, H, ks, sloan_r, sloan_z = collections.OrderedDict(), collections.OrderedDict(), \
-                                               collections.OrderedDict(), collections.OrderedDict(), \
-                                               collections.OrderedDict(), collections.OrderedDict(), \
-                                               collections.OrderedDict(), collections.OrderedDict(), \
-                                               collections.OrderedDict(), collections.OrderedDict(), \
-                                               collections.OrderedDict()
+U, B, V, R, I, z, J, H, ks = collections.OrderedDict(), collections.OrderedDict(), collections.OrderedDict(), \
+                             collections.OrderedDict(), collections.OrderedDict(), collections.OrderedDict(), \
+                             collections.OrderedDict(), collections.OrderedDict(), collections.OrderedDict()
 
 # Read in the data
 for line in Eisenhardt_data:
@@ -45,11 +44,6 @@ for line in Eisenhardt_data:
             ks[int(line[1])] = float(line[2])
         else:
             print line, "WHOOPS!!!!!!"
-for line in sloan_r_data:
-    sloan_r[float(line.split()[0])] = float(line.split()[1])
-
-for line in sloan_z_data:
-    sloan_z[float(line.split()[0])] = float(line.split()[1])
 
 # # Want to normalize the 2 sloan ones to 1 for better comparison.
 # max_r, max_z = 0, 0
@@ -68,12 +62,12 @@ for line in sloan_z_data:
 
 
 # turn all these dictionaries into a list
-filter_list = [U, B, V, R, I, z, sloan_r, sloan_z] # excluded some to make life easier
+filter_list = [U, B, V, R, I, z, J, H, ks] # excluded some to make life easier
 # Make a list of string that will be used late to write these to the file
-filter_list_names = ["U", "B", "V", "R", "I", "z", "Sloan_r", "Sloan_z"]
+filter_list_names = ["U", "B", "V", "R", "I", "z", "J", "H", "K"]
 
 # OPen a file for writing, will put filter effective wavelengths there as we go
-file = open("/Users/gbbtz7/GoogleDrive/Research/Data/Eisenhardt2007filters_effective.dat", "w")
+file = open(global_paths.home_directory + "data/Eisenhardt2007_filters_pivot.txt", "w")
 
 
 # set up a figure
@@ -87,21 +81,22 @@ colors = ["r", "0.4", "b", "c", "m", "y", "k", "g", "g", "0.8", "k"]
 # Now can find effective wavelengths
 i = 0 # counter for plotting
 for f in filter_list:
-    # basically find "center of mass" = sum(wavelength * response) / sum(response)
-    top, bottom = 0, 0
-    for w in f:
-        top += w * f[w]
-        bottom += f[w]
-    effective_wavelength = top/bottom
+    # calculate the pivot wavelength
+    response = [float(x) for x in f.values()]
+    wavelengths = [float(l) for l in f.keys()]
+    numerator = [response[k] * wavelengths[k] for k in range(len(response))]
+    denominator = [response[k] / wavelengths[k] for k in range(len(response))]
+    pivot = np.sqrt((simps(numerator, wavelengths))/simps(denominator, wavelengths))
+
 
     # Write to the file
-    file.write(filter_list_names[i] + "\t" + str(effective_wavelength) + "\n")
+    file.write(filter_list_names[i] + "\t" + str(pivot) + "\n")
 
     # Plot the filter response curve
-    ax.plot(f.keys(), f.values(), c=colors[i], label=filter_list_names[i])
+    ax.semilogx(f.keys(), f.values(), c=colors[i], label=filter_list_names[i])
 
     # Add a vertical line at the right place for the effective wavelength
-    ax.axvline(effective_wavelength, c=colors[i], linestyle="--")
+    ax.axvline(pivot, c=colors[i], linestyle="--")
     i += 1
 
 plt.legend(loc=0)

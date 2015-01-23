@@ -41,7 +41,7 @@ def make_all_equiv_z(colors, print_results=False):
 
     # open the files with Eisenhardt and other filter pivot wavelengths
     data_path = os.path.dirname(os.path.realpath(__file__)) + '/data/'
-    eisenhardt = open((data_path + "Eisenhardt2007filters_effective.txt"), "r")
+    eisenhardt = open((data_path + "Eisenhardt2007_filters_pivot.txt"), "r")
     # TODO: make these paths part of the package, rahter than be stored elsewhere
     filters_file = open((data_path + "filters.txt"), "r")
 
