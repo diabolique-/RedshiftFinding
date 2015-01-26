@@ -1,3 +1,5 @@
+save cluster pickle things to same folder as code, not on GDrive
+
 read in one mega catalog.
 	that will make read-in easier, as well as making sure I don't have to do any ugly matching or anything like that.
 	it will also allow the catalog headers to match bands, and so make the process way easier than it was before.
