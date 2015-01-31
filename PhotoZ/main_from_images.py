@@ -2,6 +2,7 @@ from PhotoZ import SExtractor
 from PhotoZ import functions
 from PhotoZ import global_paths
 from PhotoZ import read_in_catalogs
+from PhotoZ import config_data
 import cPickle
 
 
@@ -14,7 +15,7 @@ import cPickle
 # note: selecting a lower number will still run everything after it. You may want to start at a later location, for
 # example, if you've already read in catalogs and don't want to waste time doing it again. The code is smart enough to
 # save it's progress after each step, so you don't need to worry about that.
-START_WITH = 1
+START_WITH = 2
 
 # TODO: run images through astrometry.net to correct astrometry.
 
@@ -22,20 +23,18 @@ START_WITH = 1
 # own axis, I would like it to steal from the other axis instead. That looks possible, so see if it works.
 
 # initialize the resources file if it doesn't exist already.
-try:
-    open(global_paths.resources, "r")
-except IOError:
-    print "making new resources file"
-    resources = open(global_paths.resources, "w")
-    cPickle.dump(dict(), resources, -1)
-    resources.close()
+# try:
+#     open(global_paths.resources, "r")
+# except IOError:
+#     print "making new resources file"
+#     resources = open(global_paths.resources, "w")
+#     cPickle.dump(dict(), resources, -1)
+#     resources.close()
 
 if START_WITH == 0:
     print "Starting SExtractor\n"
     # Find all images in the desired directory. Will have a list of file paths.
     image_list = functions.find_all_objects(global_paths.images_directory, [".fits"], [])
-
-    # DOCUMENTED TO HERE
 
     SExtractor.sextractor_main(image_list)
 
@@ -68,21 +67,25 @@ if START_WITH <= 2:
 
     # find the red sequence redshifts
     for c in cluster_list:
-        if c.r_data and c.z_data:
-            c.fit_z("r-z", plot_figures=True)
+        for color in config_data.fitted_colors:
+            bluer_color, redder_color = color.split("-")
+            if bluer_color in c.bands and redder_color in c.bands:
+                c.fit_z(color, plot_figures=True)
 
     # save cluster list to disk
     pickle_file3 = open(global_paths.finished_pickle_file, 'w')
     cPickle.dump(cluster_list, pickle_file3, -1)
     pickle_file3.close()
 
+    print "\nDone fitting.\n"
+
 
 if START_WITH == 3:
     cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
 
-# fit a correction
-functions.fit_correction(cluster_list, "r-z", read_in=False, plot=True)
-
+# fit the corrections
+functions.fit_corrections(cluster_list, read_in=True, plot=True)
+#
 # write results to a file
 functions.write_results(cluster_list)
 

@@ -58,7 +58,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     if predictions:
         color_bar_ax = plt.subplot(whole_plot[0, 1])
         # Plot the predictions now
-        _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax)
+        _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color)
 
     # Now we can plot the points on the CMD (including errors)
     # check to make sure they have something in them
@@ -70,15 +70,15 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
                               markersize=5)  # Only difference is that this is plotted in red.
 
     color_mag_ax.set_title(cluster.name)
-    color_mag_ax.set_xlabel(band + " Band Magnitude")
-    color_mag_ax.set_ylabel(color + " Color")
+    color_mag_ax.set_xlabel(band)
+    color_mag_ax.set_ylabel(color)
 
     # Change the scale to match Stanford 14. Each filter set will be different
-    if color == "r-z":
+    if color == "sloan_r-sloan_z":
         color_mag_ax.set_xlim([20, 23.5])  # should be [20, 23.5] Changed to see high redshift better
         # color_mag_ax.set_xlim([20, 26])
         color_mag_ax.set_ylim([0, 3.5])
-    elif color == "i-ch1":
+    elif color == "sloan_i-ch1":
         color_mag_ax.set_xlim([18, 21.5])
         color_mag_ax.set_ylim([-.5, 4.5])
     elif color == "ch1-ch2":
@@ -92,7 +92,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
         return fig
 
 
-def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
+def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
     """
     Plot lines representing the EzGal predictions of the RS for redshifts 0.5 ≤ z ≤ 1.5, with spacing of 0.05.
 
@@ -118,19 +118,26 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax):
     for z in predictions_dict:
         color_val = scalar_map.to_rgba(predictions_dict[z].redshift)
 
+
+        function = predictions_dict[z].get_lambda(color)
+        xs = np.arange(17, 25, 0.01)
+        ys = [function(x) for x in xs]
+
         # Plot the predicted line, with the correct color
-        color_mag_ax.plot(predictions_dict[z].rz_line.xs, predictions_dict[z].rz_line.ys, color=color_val,
-                          linewidth=0.2)
+        color_mag_ax.plot(xs, ys, color=color_val, linewidth=0.2)
+
+        # turn color into two bands
+        bluer_band, redder_band = color.split("-")
 
         # Plot the points that correspond to L_star projected at those redshifts
-        color_mag_ax.scatter(predictions_dict[z].z_mag,
-                             predictions_dict[z].r_mag - predictions_dict[z].z_mag,
+        color_mag_ax.scatter(predictions_dict[z].mags_dict[redder_band],
+                             predictions_dict[z].mags_dict[bluer_band] - predictions_dict[z].mags_dict[redder_band],
                              color=color_val)
 
     # Add a color bar. It works on GEG computer, but not home computer, for some reason.
-    # scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
-    # fig.colorbar(scalar_map, cax=color_bar_ax)
-    # color_bar_ax.set_ylabel("Redshift")
+    scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
+    fig.colorbar(scalar_map, cax=color_bar_ax)
+    color_bar_ax.set_ylabel("Redshift")
 
 
 def plot_residuals(cluster):
@@ -232,6 +239,7 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     ax.minorticks_on()
     ax.set_ylabel("Spectroscopic Redshift")
     ax.set_xlabel("Red Sequence Redshift")
+    ax.set_title(color)
     ax.set_xlim((0.8, 1.3))
     ax.set_ylim((0.8, 1.3))
 
@@ -270,13 +278,17 @@ def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, colo
     :param other_info: Info that will go into the subtitle.
     :return: figure holding the plot
     """
-    fig, ax = plot_color_mag(cluster, color=color, band=band, predictions=False,
+    bluer_band, redder_band = color.split("-")
+    fig, ax = plot_color_mag(cluster, color=color, band=redder_band, predictions=False,
                                                                       distinguish_red_sequence=color_red_sequence,
                              return_axis=True)
-    line = cluster.predictions_dict[redshift].rz_line
-    ax.plot(line.xs, line.ys, "k-", linewidth=0.5, label="Initial z")
-    ax.scatter(cluster.predictions_dict[redshift].z_mag, cluster.predictions_dict[redshift].r_mag -
-               cluster.predictions_dict[redshift].z_mag, c="r", s=10)  # Plot characteristic magnitude point
+    line = cluster.predictions_dict[redshift].get_lambda(color)
+    mags = np.arange(10, 30, 0.01)
+    colors = [line(mag) for mag in mags]
+    ax.plot(mags, colors, "k-", linewidth=0.5, label="Initial z")
+    ax.scatter(cluster.predictions_dict[redshift].mags_dict[redder_band], cluster.predictions_dict[redshift].mags_dict[
+               bluer_band] - cluster.predictions_dict[redshift].mags_dict[redder_band], c="r", s=10)
+                # Plot characteristic magnitude point
     fig.suptitle(cluster.name + ", current z=" + str(redshift))
     ax.set_title(str(other_info), fontsize=10)
 

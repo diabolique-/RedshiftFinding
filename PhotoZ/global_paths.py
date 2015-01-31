@@ -1,9 +1,14 @@
+import os
+
 # Tell the program where the various things will be, so it can find them
 # DO NOT FORGET A SLASH ON THINGS THAT ARE SUPPOSED TO BE DIRECTORIES!!
 
 # define a base directory, so you don't have to type the same thing each time
-# base_directory = "/Users/gbbtz7/"
-base_directory = "/Users/gillenbrown/"
+base_directory = "/Users/gbbtz7/"
+# base_directory = "/Users/gillenbrown/"
+
+#this will return the directory of the module itself. DO NOT CHANGE THIS LINE
+home_directory = os.path.dirname(os.path.realpath(__file__)) + "/"  # DO NOT CHANGE.
 
 ########################################################################################################################
 
@@ -32,7 +37,7 @@ catalogs_save_directory = base_directory + "GoogleDrive/Research/Data/Catalogs/G
 
 # Directory where the code will look for all catalogs. Will search in all subdirectories, like the image search. Don't
 # forget to include the directory where the SExtractor catalogs were saved.
-catalogs_look_directory = "/Users/gbbtz7/GoogleDrive/Research/Data/Catalogs/"
+catalogs_look_directory = base_directory + "GoogleDrive/Research/Data/Catalogs/"
 
 # Directory for calibration catalogs to be saved to.
 calibration_catalogs_directory = base_directory + "GoogleDrive/Research/Data/SDSS_catalogs"
@@ -66,7 +71,7 @@ rs_catalogs = base_directory + "GoogleDrive/Research/Data/RS_catalogs/"
 ########################################################################################################################
 
 # File that will be used to store miscellanous data the program calculates and wants to save
-resources = base_directory + "GoogleDrive/Research/Data/CodeData/resources.p"
+resources = home_directory + "data/resources.p"
 
 # directory to store RS slopes. W# TODO: consolidate this into one thing with other various data
 rs_slopes = base_directory + "GoogleDrive/Research/Data/CodeData/Best_fit_RS_slope.pickle"

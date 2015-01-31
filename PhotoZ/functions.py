@@ -1,9 +1,11 @@
 
 from PhotoZ import plotting
 from PhotoZ import global_paths
+from PhotoZ import config_data
 import os
 import re
 import math
+import json
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy.polynomial.polynomial as polynomial
 import matplotlib.pyplot as plt
@@ -65,7 +67,7 @@ def make_cluster_name(filename):
     known_catalogs = re.compile("m[0-9]{4}(p|m)[0-9]{4}[.]phot[.]dat")
     # This means starts with an m, then 4 numeric characters, then p or m, then 4 more numeric characters
 
-    my_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]cat")
+    my_catalog = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_sloan_(r|z)[.]cat")
     # This is the format my code outputs SExtractor catalogs with.
 
     gemini_images = re.compile(r"MOO[0-9]{4}([+]|[-])[0-9]{4}_(r|z)[.]fits")
@@ -76,7 +78,7 @@ def make_cluster_name(filename):
     keck = re.compile(r"m[0-9]{4}(p|m)[0-9]{4}[.]zr[.]cat")
 
     if my_catalog.match(name):
-        return name[0:-6]  # Don't include band or extension
+        return name[0:12]  # Don't include band or extension
     elif gemini_images.match(name):
         return name[0:-7]  # Don't include band or extension
     elif irac.match(name):
@@ -108,19 +110,19 @@ def make_cluster_name(filename):
     return "not working"
 
 
-
-def get_band_from_filename(filename):
-    # DOCUMENTED
-    """Finds the band of an image or catalog based on the filename.
-
-    Assumes file names are of the form object_name_band.extension
-
-    :param filename: string with the filename
-    :return: string containing the band
-    """
-    file_no_extension = filename.split(".")[0]  # first thing before a .
-    band = file_no_extension.split("_")[-1]  # the band will be the last thing in the name itself
-    return band
+# TODO: delete this function? whould
+# def get_band_from_filename(filename):
+#     # DOCUMENTED
+#     """Finds the band of an image or catalog based on the filename.
+#
+#     Assumes file names are of the form object_name_band.extension
+#
+#     :param filename: string with the filename
+#     :return: string containing the band
+#     """
+#     file_no_extension = filename.split(".")[0]  # first thing before a .
+#     band = file_no_extension.split("_")[-1]  # the band will be the last thing in the name itself
+#     return band
 
 def distance(x1, x2, y1, y2):
     """Uses the distance formula to calculate the distance between 2 objects
@@ -155,53 +157,76 @@ def uJansky_to_AB_mag(uJanksys):
     return -2.5*math.log10(Janskys) + 8.9
 # AB to Vega: http://irsa.ipac.caltech.edu/data/COSMOS/tables/scosmos/scosmos_irac_200706_colDescriptions.html
 
-
-def fit_correction(cluster_list, colors, read_in=False, plot=False):
+def fit_corrections(cluster_list, read_in=False, plot=False):
     # TODO: document
-    figures = []  # initialize a list that will be filled with figures
+    correction_path = global_paths.home_directory + "data/corrections.txt"
+    figures = []
+    fits = dict()
     if read_in:
-        # open the resources pickle fil
-        pickle_file = open(global_paths.resources, "r")
-        resources = cPickle.load(pickle_file)
-        fit = resources["fit"]
-        pickle_file.close()
+        # read in the file with corrections
+        correction_file = open(correction_path, "r")
+        for line in correction_file.readlines():
+            if not line.startswith("#"):
+                color = line.split()[0]
+                correction = json.loads(" ".join(line.split()[1:]))
+                fits[color] = correction
+        correction_file.close()
     else:
-        spec_z_clusters = [c for c in cluster_list if c.spec_z and colors in c.rs_z and not "catalog" in c.name]
-        # remove one cluster that does not have a good fit
-        spec_z_clusters = [c for c in spec_z_clusters if not c.name.startswith("MOO0224-0620")]
+        for color in config_data.fitted_colors:
+            spec_z_clusters = [c for c in cluster_list if c.spec_z and color in c.rs_z and not
+                               c.name.startswith("MOO0224-0620")]  # throw out duplicates and one cluster with bad fit
+            if len(spec_z_clusters) >= 1: # don't want to fit on too few data points
 
-        spec_zs = [float(c.spec_z) for c in spec_z_clusters]
-        rs_zs = [float(c.rs_z[colors]) for c in spec_z_clusters]
-        weights = [(1.0 / ((c.upper_photo_z_error[colors] + c.lower_photo_z_error[colors])/2)) for c in spec_z_clusters]
-        # fit a function to the redshifts
-        fit = polynomial.polyfit(rs_zs, spec_zs, 1)#, w=weights)
-        if plot:
-            figures.append(plotting.plot_z_comparison(spec_z_clusters, colors, fit, label=True))
+                spec_zs = [float(c.spec_z) for c in spec_z_clusters]
+                rs_zs = [float(c.rs_z[color]) for c in spec_z_clusters]
+                weights = [(1.0 / ((c.upper_photo_z_error[color] + c.lower_photo_z_error[color])/2))
+                           for c in spec_z_clusters]
+                # fit a function to the redshifts
+                fits[color] = polynomial.polyfit(rs_zs, spec_zs, 1)#, w=weights)
 
-        # save the correction to disk.
-        pickle_file = open(global_paths.resources, "r")
-        resources = cPickle.load(pickle_file)
-        pickle_file.close() # close the file, since we want to overwrite what's in it when we save the new resource
-        resources["fit"] = fit
-        pickle_file = open(global_paths.resources, "w") # opening for writing gets rid of the old file.
-        cPickle.dump(resources, pickle_file, -1)  # we don't lose data, since we read in what was there and updated it
-        pickle_file.close()
-
-
+        # save the corrections to disk
+        correction_file = open(correction_path, "w")
+        # json.dump(fits, correction_file)
+        correction_file.write("{:17s} {:17s}\n".format("#color", "correction"))
+        for color in fits:
+            correction_file.write("{:17s} {:17s}\n".format(color, json.dumps(list(fits[color]))))
+        correction_file.close()
 
     # correct the redshifts
-    for c in cluster_list:
-        if colors in c.rs_z:
-            x = float(c.rs_z[colors])
-            z = 0
-            for i in range(len(fit)):
-                z += fit[i]*x**i
-            c.rs_z[colors] = str(round(z, 2))
+    for color in fits:
+        # Plot the redshifts pre-correction
+        if plot:
+            spec_z_clusters = [c for c in cluster_list if c.spec_z and color in c.rs_z and not
+                               c.name.startswith("MOO0224-0620")]  # throw out duplicates and one cluster with bad fit
 
+            figures.append(plotting.plot_z_comparison(spec_z_clusters, color, fits[color], label=True))
+
+        # correct redshifts
+        for c in cluster_list:
+            if color in c.rs_z:
+                measured_z = float(c.rs_z[color])
+                corrected_z = 0
+                # corrected z is a function of measured z, so we plug the observed value into the function
+                for i in range(len(fits[color])):
+                    corrected_z += fits[color][i]*measured_z**i
+                c.rs_z[color] = str(round(corrected_z, 2))
+
+        # plot the redshifts post-correction
+        if plot:
+            spec_z_clusters = [c for c in cluster_list if c.spec_z and color in c.rs_z and not
+                               c.name.startswith("MOO0224-0620")]  # throw out duplicates and one cluster with bad fit
+
+            figures.append(plotting.plot_z_comparison(spec_z_clusters, color, fit=None, label=False))
+
+    # save the plots
     if plot:
-        # Plot corrected redshifts
-        figures.append(plotting.plot_z_comparison(cluster_list, colors, label=False))
         save_as_one_pdf(figures, global_paths.z_comparison_plots)
+
+
+
+
+
+
 
 def write_results(clusters):
     # TODO: document
@@ -209,11 +234,11 @@ def write_results(clusters):
     f = open(global_paths.results, 'w')
 
     # write headings for the file
-    f.write("{:23s} {:6s} {:5s} {:7s} {:7s} {:6s}\n".format("cluster", "color", "z", "up err", "low err", "spec z"))
+    f.write("{:23s} {:17s} {:5s} {:7s} {:7s} {:6s}\n".format("#cluster", "color", "z", "up err", "low err", "spec z"))
 
-    for c in clusters:
+    for c in sorted(clusters, key=lambda c: c.name):  # sort clusters by name
         for color in c.rs_z:
-            f.write("{:23s} {:6s} {:5s} {:7s} {:7s} {:6s}\n".format(c.name, color, c.rs_z[color],
+            f.write("{:23s} {:17s} {:5s} {:7s} {:7s} {:6s}\n".format(c.name, color, c.rs_z[color],
                                                                   str(c.upper_photo_z_error[
                 color]), str(c.lower_photo_z_error[color]), str(c.spec_z)))
     f.close()

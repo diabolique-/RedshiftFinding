@@ -1,4 +1,6 @@
 import math
+from PhotoZ import making_slopes
+from PhotoZ import config_data
 import numpy as np
 
 # TODO: document
@@ -89,48 +91,83 @@ class data(object):
     def __ge__(self, other):
         return self.value >= other
 
+
 class Predictions(object):
     """
     Class storing data from the EzGal models.
     """
-    def __init__(self, redshift, r_mag, i_mag, z_mag, ch1_mag, ch2_mag, slope):
+
+    #get slopes for all redshifts
+    slope_dict = making_slopes.make_slopes(config_data.fitted_colors)
+
+    def __init__(self, redshift, mags):
         """
         Initialize the predictions object, using the given data.
 
         :param redshift: redshift where all the other values apply
-        :param r_mag: Sloan r band magnitude
-        :param i_mag: Sloan i band magnitude
-        :param z_mag: Sloan z band magnitude
-        :param ch1_mag: IRAC ch1 magnitude
-        :param ch2_mag: IRAC ch2 magnitude
-        :param slope: slope of the red sequence
+        :param mags: dictionary of keys=filters and values=magnitudes
         :return: Predictions object
         """
         self.redshift = redshift
-        self.r_mag = r_mag
-        self.i_mag = i_mag
-        self.z_mag = z_mag
-        self.ch1_mag = ch1_mag
-        self.ch2_mag = ch2_mag
-        # function assigns slope itself
-        self.rz_line = self._make_line(slope, self.z_mag, self.r_mag - self.z_mag)
+        self.mags_dict = mags
 
-    def _make_line(self, slope, l_star_mag, l_star_color):
-        """
-        Makes the line that represents the red sequence.
+        # turn those slopes into lambda functions representing the line of the red sequence at that redshift and in
+        # a given filter combination
+        # when doing this, the x axis will be magnitude, and y will be color. the origin will be the point predicted
+        # by the models, and the slope will go off from it.
+        # self.lines = dict()
+        # for filter_pair in self.slope_dict:
+        #     bluer_band, redder_band = filter_pair.split("-")
+        #
+        #     # get the color of the prediction for the given filter combination.
+        #     color_zeropoint = self.mags_dict[bluer_band] - self.mags_dict[redder_band]
+        #     # make a lambda fnction from this describing a line. The y intercept will be the color_zeropoint, then
+        #     # the slope (given from the slope dictionary) will be multiplied by the value of how far the desired
+        #     # magnitude is from the one predicted. We have to use a difference, since the predicted mag corresponds
+        #     # to the color_zeropoint calculated above.
+        #     # self.lines[filter_pair] = lambda x: color_zeropoint #+ self.slope_dict[filter_pair](float(self.redshift)) \
+        #                                                        # * (mag - self.mags_dict[redder_band])
+        #     self.lines[filter_pair] = lambda x : color_zeropoint
+        #     if filter_pair == "sloan_r-sloan_z":
+        #         print self.lines[filter_pair](999), "make"
 
-        :param slope: slope of the red sequence
-        :param l_star_mag: characteristic magnitude
-        :param l_star_color: characteristic color
-        :return: none, but line is assigned within the function
-        """
-        # Now make more points that form a the x values of the line
-        xs = np.arange(l_star_mag - 10, l_star_mag + 10, 0.01).tolist()
-        # round the x values
-        xs = [round(x, 2) for x in xs]
+    def get_lambda(self, filter_pair):
+        bluer_band, redder_band = filter_pair.split("-")
+        # get the color of the prediction for the given filter combination.
+        color_zeropoint = self.mags_dict[bluer_band] - self.mags_dict[redder_band]
+        # make a lambda fnction from this describing a line. The y intercept will be the color_zeropoint, then
+        # the slope (given from the slope dictionary) will be multiplied by the value of how far the desired
+        # magnitude is from the one predicted. We have to use a difference, since the predicted mag corresponds
+        # to the color_zeropoint calculated above.
 
-        # Turn this data to a line object, and assign that to the instance attribute
-        return Line(xs, slope=slope, x_point=l_star_mag, y_point=l_star_color)
+        return lambda mag: color_zeropoint + self.slope_dict[filter_pair][self.redshift] \
+                                             * (mag - self.mags_dict[redder_band])
+
+
+
+
+
+
+    def __repr__(self):
+        return str(self.mags_dict)
+
+    # TODO: delete this function below?
+    # def _make_line(self, slope, l_star_mag, l_star_color):
+    #     """
+    #     Makes the line that represents the red sequence.
+    #
+    #     :param slope: slope of the red sequence
+    #     :param l_star_mag: characteristic magnitude
+    #     :param l_star_color: characteristic color
+    #     :return: none, but line is assigned within the function
+    #     """
+    #     # Now make more points that form a the x values of the line
+    #     xs = np.arange(l_star_mag - 10, l_star_mag + 10, 0.01).tolist()
+    #     # round the x values
+    #     xs = [round(x, 2) for x in xs]
+    #
+    #     # Turn this data to a line object, and assign that to the instance attribute
+    #     return Line(xs, slope=slope, x_point=l_star_mag, y_point=l_star_color)
 
 
 class Line(object):
