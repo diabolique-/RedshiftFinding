@@ -27,9 +27,9 @@ class Cluster(object):
              "MOO0245+2018": "0.76", "MOO0319-0025": "1.19", "MOO1155+3901": "1.01", "MOO1210+3154": "1.05",
              "MOO1319+5519": "0.94", "MOO1335+3004": "0.98", "MOO1514+1346": "1.06", "MOO1625+2629": "1.20",
              "MOO2205-0917": "0.93", "MOO2320-0620": "0.92", "MOO2348+0846": "0.89", "MOO2355+1030": "1.27"}
-            if "catalog" in self.name: # To handle duplicate clusters that I have named with catalog
-                self.spec_z = known_redshifts[self.name.split()[0]]
-            elif self.name in known_redshifts: # will handle normal clusters
+            # if "catalog" in self.name: # To handle duplicate clusters that I have named with catalog
+            #     self.spec_z = known_redshifts[self.name.split()[0]]
+            if self.name in known_redshifts: # will handle normal clusters
                 self.spec_z = known_redshifts[self.name]
             else:
                 self.spec_z = None
@@ -78,15 +78,16 @@ class Cluster(object):
                 pass
                 # self._find_xy_cut(750)  # TODO: write better cut function
             else:
+                print self.name
                 self._find_location_cut(1.5)  # To do no plotting
-
         if plot_figures:
             # Plot initial color mag with predictions
-            figures_list.append(plotting.plot_color_mag(self, color, band=color.split("-")[1], predictions=True,
-                                                        distinguish_red_sequence=False))
+            # figures_list.append(plotting.plot_color_mag(self, color, band=color.split("-")[1], predictions=True,
+            #                                             distinguish_red_sequence=False))
+            pass
 
         # do an initial redshift fitting, to get a starting point
-        initial_z = self._find_initial_redshift(color, plot_bar=plot_figures, figs_list=figures_list)
+        initial_z = self._find_initial_redshift(color, plot_bar=False, figs_list=figures_list)
 
         # set red sequence cut based on the initial redshift
         self._set_as_rs_member(self.sources_list, initial_z, color, -0.1, 0.1, -1.2, 0.5)
@@ -94,9 +95,9 @@ class Cluster(object):
 
         if plot_figures:
             # Plot the initial cut with RS based on the initial cut
-            figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], initial_z,
-                                                                other_info="Initial "
-                                                                "Fitting", color_red_sequence=True))
+            # figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], initial_z,
+            #                                                     other_info="Initial "
+            #                                                     "Fitting", color_red_sequence=True))
             pass
 
 
@@ -132,13 +133,17 @@ class Cluster(object):
 
             # Plot most recent redshift estimate
             if plot_figures:
-                figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], best_z,
-                                                                    other_info="Cut " + str(i+1)))
+                if i==0:
+                    figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1],
+                                                                    best_z, other_info="Cut " + str(i+1)))
+
                 pass
 
             chi_redshift_list = self._fit_redshift_to_sample(sample, color, color.split("-")[1])
 
             best_z, z_lower_error, z_upper_error = self._get_stats_from_chi(chi_redshift_list)
+
+
 
 
 
@@ -163,12 +168,12 @@ class Cluster(object):
 
         # Plot final redshift on CMD
         if plot_figures:
-            figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], self.rs_z[color],
-                                                                "Final Redshift", color_red_sequence=True))
-            figures_list.append(plotting.plot_location(self))
+            # figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], self.rs_z[color],
+            #                                                     "Final Redshift", color_red_sequence=True))
+            # figures_list.append(plotting.plot_location(self))
             pass # again so I can comment out plots if I want
 
-        self._write_rs_catalog()
+        # self._write_rs_catalog()
 
         # Save the plots
         functions.save_as_one_pdf(figures_list, global_paths.plots + str(self.name) + ".pdf")

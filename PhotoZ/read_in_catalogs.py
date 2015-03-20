@@ -102,10 +102,13 @@ def read_sex_catalogs():
             # Convert them to source objects
             # I don't worry about adding each source at once, since clusters that are from these catalogs will not be
             #  used with any other catalogs. They are independent.
+            # for line in cat_table:
+            #     if not all(line):
+            #         print line
             this_cluster.sources_list = [other_classes.Source(line[0], line[1], mag_bands=[band], mags=[line[2]],
                                                               mag_errors=[0], color_bands=[color],
                                                               color_values=[line[3]], color_errors=[line[4]])
-                                         for line in cat_table]
+                                         for line in cat_table if all(line)]
 
         elif keck_catalog.match(cat_filename):
             # read in catalog

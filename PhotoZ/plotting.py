@@ -6,6 +6,7 @@ import matplotlib.gridspec as grid
 import matplotlib.colors as mplcol
 import matplotlib.cm as cmx
 import numpy as np
+import json
 
 # TODO: document
 
@@ -49,7 +50,7 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     # Set up the plot
     fig = plt.figure(figsize=(9, 6))
     # Configure subplots
-    whole_plot = grid.GridSpec(1, 2, width_ratios=[50, 1], left=0.08, right=0.92, wspace=0.1)
+    whole_plot = grid.GridSpec(1, 2, width_ratios=[50, 1], left=0.08, right=0.92, top=0.95, wspace=0.1)
     # Still automatically leave room for the color bar, even if not needed, to make code simpler. It doesn't take up
     #     that much space, so it looks fine blank anyway
     color_mag_ax = plt.subplot(whole_plot[0, 0])
@@ -63,21 +64,35 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     # Now we can plot the points on the CMD (including errors)
     # check to make sure they have something in them
     if len(non_rs_colors) > 0:
+        # zipped = zip(non_rs_colors, non_rs_color_errs, non_rs_mags)
+        # print zipped
+        # for pair in zipped:
+        #     if not all(pair):
+        #         zipped.remove(pair)
+        # non_rs_colors, non_rs_color_errs, non_rs_mags = zip(*zipped)
+        # print len(non_rs_color_errs), len(non_rs_colors)
+
         color_mag_ax.errorbar(x=non_rs_mags, y=non_rs_colors, yerr=non_rs_color_errs, c="k", fmt=".", elinewidth=0.35,
                               capsize=0, markersize=5)
     if len(rs_colors) > 0:
         color_mag_ax.errorbar(x=rs_mags, y=rs_colors, yerr=rs_color_errs, c="r", fmt=".", elinewidth=0.35, capsize=0,
                               markersize=5)  # Only difference is that this is plotted in red.
 
-    color_mag_ax.set_title(cluster.name)
-    color_mag_ax.set_xlabel(band)
-    color_mag_ax.set_ylabel(color)
+    # color_mag_ax.set_title(cluster.name)
+    if "sloan_" in band:
+        color_mag_ax.set_xlabel(band.replace("sloan_", "")) # get rid of sloan in name "sloan_z" -> "z"
+    else:
+        color_mag_ax.set_xlabel(band)
+    if "sloan_" in color:
+        color_mag_ax.set_ylabel(color.replace("sloan_", ""))
+    else:
+        color_mag_ax.set_ylabel(color)
 
     # Change the scale to match Stanford 14. Each filter set will be different
     if color == "sloan_r-sloan_z":
-        color_mag_ax.set_xlim([20, 23.5])  # should be [20, 23.5] Changed to see high redshift better
+        color_mag_ax.set_xlim([20.5, 23.5])  # should be [20, 23.5] Changed to see high redshift better
         # color_mag_ax.set_xlim([20, 26])
-        color_mag_ax.set_ylim([0, 3.5])
+        color_mag_ax.set_ylim([0.5, 3.5])
     elif color == "sloan_i-ch1":
         color_mag_ax.set_xlim([18, 21.5])
         color_mag_ax.set_ylim([-.5, 4.5])
@@ -136,7 +151,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
 
     # Add a color bar. It works on GEG computer, but not home computer, for some reason.
     scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
-    fig.colorbar(scalar_map, cax=color_bar_ax)
+    # fig.colorbar(scalar_map, cax=color_bar_ax)
     color_bar_ax.set_ylabel("Redshift")
 
 
@@ -289,8 +304,10 @@ def plot_fitting_procedure(cluster, color, band, redshift, other_info=None, colo
     ax.scatter(cluster.predictions_dict[redshift].mags_dict[redder_band], cluster.predictions_dict[redshift].mags_dict[
                bluer_band] - cluster.predictions_dict[redshift].mags_dict[redder_band], c="r", s=10)
                 # Plot characteristic magnitude point
-    fig.suptitle(cluster.name + ", current z=" + str(redshift))
-    ax.set_title(str(other_info), fontsize=10)
+    fig.text(0.1, 0.90, "z = " + str(round(apply_correction(float(redshift), color), 2)), transform = ax.transAxes,
+             horizontalalignment="left", verticalalignment="top", bbox=dict(ec="k", fc="none"))  # plot current redshift in the top left
+    # fig.suptitle(cluster.name + ", current z=" + str(redshift))
+    # ax.set_title(str(other_info), fontsize=10)
 
     return fig
 
@@ -346,3 +363,23 @@ def plot_chi_data(cluster, chi_redshift_pairs, left_limit, best_z, right_limit):
     ax.set_title(cluster.name + ", spec z = " + str(cluster.spec_z))
 
     return fig
+
+def apply_correction(z, color):
+
+    correction_path = global_paths.home_directory + "data/corrections.txt"
+    fits = dict()
+    # read in the file with corrections
+    correction_file = open(correction_path, "r")
+    for line in correction_file.readlines():
+        if not line.startswith("#"):
+            f_color = line.split()[0]
+            correction = json.loads(" ".join(line.split()[1:]))
+            fits[f_color] = correction
+    correction_file.close()
+
+    corrected_z = 0
+    for i in range(len(fits[color])):
+        corrected_z += fits[color][i]*(z**i)
+
+    return corrected_z
+    # don't need to return anything, since z_list is modified in place

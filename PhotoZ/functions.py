@@ -91,7 +91,7 @@ def make_cluster_name(filename):
         # Now have the beginning be taken off, and replaced with MOO.
         name = "MOO" + name[1:]
         # Append catalog to the name, so that I can distinguish these from the catalogs I made myself.
-        name += " catalog"
+        # name += " catalog"
         return name
 
     elif keck.match(name):

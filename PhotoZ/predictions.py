@@ -55,6 +55,7 @@ def make_prediction_dictionary(spacing):
         filters_dir = model.data_dir + "filters/"
         # make a list of all filters in that directory. We will make predictions for all filters
         all_filters = [f for f in os.listdir(filters_dir) if f != "README"]
+        all_filters = ["sloan_r", "sloan_z"]
 
         # Calculate observables in AB mags
         model.get_apparent_mags(zf, filters=all_filters, zs=zs, vega=False)
