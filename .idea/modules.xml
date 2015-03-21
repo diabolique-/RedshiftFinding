@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../AstroUtilities/.idea/AstroUtilities.iml" filepath="$PROJECT_DIR$/../AstroUtilities/.idea/AstroUtilities.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Masses/.idea/Masses.iml" filepath="$PROJECT_DIR$/../Masses/.idea/Masses.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/RedshiftFinding.iml" filepath="$PROJECT_DIR$/.idea/RedshiftFinding.iml" />
       <module fileurl="file://$PROJECT_DIR$/../grading_help/.idea/grading_help.iml" filepath="$PROJECT_DIR$/../grading_help/.idea/grading_help.iml" />
