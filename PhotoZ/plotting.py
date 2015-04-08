@@ -127,7 +127,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
     # Set the colormap, to color code lines by redshift
     spectral = plt.get_cmap("spectral")
     # Normalize the colormap so that the the range of colors maps to the range of redshifts
-    c_norm = mplcol.Normalize(vmin=min(predictions_dict), vmax=max(predictions_dict))
+    c_norm = mplcol.Normalize(vmin=np.float64(min(predictions_dict)), vmax=np.float64(max(predictions_dict)))
     scalar_map = cmx.ScalarMappable(norm=c_norm, cmap=spectral)
 
     for z in predictions_dict:
@@ -151,7 +151,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
 
     # Add a color bar. It works on GEG computer, but not home computer, for some reason.
     scalar_map.set_array([])  # I don't know what this does, but I do know it needs to be here.
-    # fig.colorbar(scalar_map, cax=color_bar_ax)
+    fig.colorbar(mappable=scalar_map, cax=color_bar_ax)
     color_bar_ax.set_ylabel("Redshift")
 
 
