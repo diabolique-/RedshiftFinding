@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 def equivalent_redshift(coma_filter, distant_filter):
     """
     Find the distant redshift at which a given filter observing at that redshift will see the same rest frame as the

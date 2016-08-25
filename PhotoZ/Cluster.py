@@ -22,11 +22,18 @@ class Cluster(object):
             self.spec_z = spec_z
         else:
             # compare the name against a known list of redshifts, to see if it is known.
-            known_redshifts = {"MOO0012+1602": "0.94", "MOO0024+3303": "1.11", "MOO0125+1344": "1.12",
-             "MOO0130+0922": "1.15", "MOO0133-1057": "0.96", "MOO0212-1813": "1.09", "MOO0224-0620": "0.81",
-             "MOO0245+2018": "0.76", "MOO0319-0025": "1.19", "MOO1155+3901": "1.01", "MOO1210+3154": "1.05",
-             "MOO1319+5519": "0.94", "MOO1335+3004": "0.98", "MOO1514+1346": "1.06", "MOO1625+2629": "1.20",
-             "MOO2205-0917": "0.93", "MOO2320-0620": "0.92", "MOO2348+0846": "0.89", "MOO2355+1030": "1.27"}
+            known_redshifts = {"MOO0012+1602": '0.94', "MOO0024+3303": '1.11',
+                               "MOO0125+1344": '1.12', "MOO0130+0922": '1.15',
+                               "MOO0133-1057": '0.96', "MOO0212-1813": '1.09',
+                               "MOO0224-0620": '0.81', "MOO0245+2018": '0.76',
+                               "MOO0319-0025": '1.19', "MOO1155+3901": '1.01',
+                               "MOO1210+3154": '1.05', "MOO1319+5519": '0.94',
+                               "MOO1335+3004": '0.98', "MOO1514+1346": '1.06',
+                               "MOO1625+2629": '1.20', "MOO2205-0917": '0.93',
+                               "MOO2320-0620": '0.92', "MOO2348+0846": '0.89',
+                               "MOO2355+1030": '1.27', "MOO0105+1323": '1.10',
+                               "MOO1014+0038": '1.24', "MOO1142+1527": '1.21',
+                               "MOO2206+0906": '0.96'}
             # if "catalog" in self.name: # To handle duplicate clusters that I have named with catalog
             #     self.spec_z = known_redshifts[self.name.split()[0]]
             if self.name in known_redshifts: # will handle normal clusters
@@ -82,8 +89,8 @@ class Cluster(object):
                 self._find_location_cut(1.5)  # To do no plotting
         if plot_figures:
             # Plot initial color mag with predictions
-            # figures_list.append(plotting.plot_color_mag(self, color, band=color.split("-")[1], predictions=True,
-            #                                             distinguish_red_sequence=False))
+            figures_list.append(plotting.plot_color_mag(self, color, band=color.split("-")[1], predictions=True,
+                                                        distinguish_red_sequence=False))
             pass
 
         # do an initial redshift fitting, to get a starting point
@@ -133,9 +140,9 @@ class Cluster(object):
 
             # Plot most recent redshift estimate
             if plot_figures:
-                if i==0:
-                    figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1],
-                                                                    best_z, other_info="Cut " + str(i+1)))
+                # if i==0:
+                #     figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1],
+                #                                                     best_z, other_info="Cut " + str(i+1)))
 
                 pass
 
@@ -168,8 +175,8 @@ class Cluster(object):
 
         # Plot final redshift on CMD
         if plot_figures:
-            # figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], self.rs_z[color],
-            #                                                     "Final Redshift", color_red_sequence=True))
+            figures_list.append(plotting.plot_fitting_procedure(self, color, color.split("-")[1], self.rs_z[color],
+                                                                "Final Redshift", color_red_sequence=True))
             # figures_list.append(plotting.plot_location(self))
             pass # again so I can comment out plots if I want
 

@@ -88,11 +88,12 @@ def plot_color_mag(cluster, color, band, predictions=True, distinguish_red_seque
     else:
         color_mag_ax.set_ylabel(color)
 
+    print color
     # Change the scale to match Stanford 14. Each filter set will be different
     if color == "sloan_r-sloan_z":
         color_mag_ax.set_xlim([20.5, 23.5])  # should be [20, 23.5] Changed to see high redshift better
         # color_mag_ax.set_xlim([20, 26])
-        color_mag_ax.set_ylim([0.5, 3.5])
+        color_mag_ax.set_ylim([1.0, 3.5])
     elif color == "sloan_i-ch1":
         color_mag_ax.set_xlim([18, 21.5])
         color_mag_ax.set_ylim([-.5, 4.5])
@@ -139,7 +140,7 @@ def _add_predictions_to_cmd(fig, color_mag_ax, color_bar_ax, color):
         ys = [function(x) for x in xs]
 
         # Plot the predicted line, with the correct color
-        color_mag_ax.plot(xs, ys, color=color_val, linewidth=0.2)
+        color_mag_ax.plot(xs, ys, color=color_val, linewidth=0.5)
 
         # turn color into two bands
         bluer_band, redder_band = color.split("-")
@@ -232,7 +233,7 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(1, 1, 1)
     # Plot points for individual clusters
-    ax.errorbar(photo, spec, xerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5, markersize=8)
+    ax.errorbar(spec, photo, yerr=total_error, c="k", fmt=".", capsize=2, elinewidth=0.5, markersize=8)
     # Plot where the best fit line should be
     ax.plot([0.5, 2.5], [0.5, 2.5], "k-", lw=0.5)
     # Plot the best fit line
@@ -242,7 +243,7 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
         for coefficient in range(len(fit)):
             fit_line += fit[coefficient]*x**(coefficient)
             # acually plot it
-        ax.plot(x, fit_line, "b")
+        # ax.plot(x, fit_line, "b")
     # label the data points with the cluster name
     if label:
         for c in clusters:
@@ -252,9 +253,9 @@ def plot_z_comparison(clusters, color, fit=None, label=None):
     # Add a grid, to make for easier viewing
     ax.grid(which="both")
     ax.minorticks_on()
-    ax.set_ylabel("Spectroscopic Redshift")
-    ax.set_xlabel("Red Sequence Redshift")
-    ax.set_title(color)
+    ax.set_xlabel("spectroscopic redshift")
+    ax.set_ylabel("red sequence redshift")
+    ax.annotate(s=color.replace("sloan_", "") + " ", xy=(0.85, 1.25), bbox=dict(facecolor="w"))
     ax.set_xlim((0.8, 1.3))
     ax.set_ylim((0.8, 1.3))
 
@@ -365,6 +366,7 @@ def plot_chi_data(cluster, chi_redshift_pairs, left_limit, best_z, right_limit):
     return fig
 
 def apply_correction(z, color):
+
 
     correction_path = global_paths.home_directory + "data/corrections.txt"
     fits = dict()

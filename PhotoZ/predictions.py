@@ -1,10 +1,8 @@
 import ezgal
 import numpy as np
-import cPickle
 import os
 from PhotoZ import other_classes
 from PhotoZ import config_data
-from PhotoZ import global_paths
 
 def make_prediction_dictionary(spacing):
     """
@@ -41,10 +39,12 @@ def make_prediction_dictionary(spacing):
     # Normalize to Coma
     model.set_normalization(filter='ks', mag=10.9, apparent=True, vega=True, z=0.023)
 
-
+    print config_data.filters_list
     # Calculate observables in AB mags
     mags = model.get_apparent_mags(zf, filters=config_data.filters_list, zs=zs, vega=False)
     # mags has dimensions of: [redshifts, filters]
+
+    print mags
 
     # If we recently build and evolved the model, save it so we don't have to do that again.
     if build:
@@ -77,6 +77,7 @@ def make_prediction_dictionary(spacing):
         predictions_dict[z] = other_classes.Predictions(redshift=z, mags=mag_dict)
     return predictions_dict
 
+make_prediction_dictionary(0.05)
 
 def simple_chi_square(sources, color, band, model_line):
     # TODO: why is this function here?

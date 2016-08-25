@@ -37,7 +37,7 @@ catalogs_save_directory = base_directory + "GoogleDrive/Research/Data/Catalogs/G
 
 # Directory where the code will look for all catalogs. Will search in all subdirectories, like the image search. Don't
 # forget to include the directory where the SExtractor catalogs were saved.
-catalogs_look_directory = base_directory + "GoogleDrive/Research/Data/Catalogs/Created/1142/"
+catalogs_look_directory = base_directory + "GoogleDrive/Research/Data/Catalogs/Provided/madcows.specz.phot"
 
 # Directory for calibration catalogs to be saved to.
 calibration_catalogs_directory = base_directory + "GoogleDrive/Research/Data/SDSS_catalogs"

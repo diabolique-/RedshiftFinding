@@ -199,7 +199,7 @@ def fit_corrections(cluster_list, read_in=False, plot=False):
             spec_z_clusters = [c for c in cluster_list if c.spec_z and color in c.rs_z and not
                                c.name.startswith("MOO0224-0620")]  # throw out duplicates and one cluster with bad fit
 
-            figures.append(plotting.plot_z_comparison(spec_z_clusters, color, fits[color], label=True))
+            figures.append(plotting.plot_z_comparison(spec_z_clusters, color, fits[color], label=False))
 
         # correct redshifts
         for c in cluster_list:

@@ -84,7 +84,7 @@ if START_WITH == 3:
     cluster_list = cPickle.load(open(global_paths.finished_pickle_file, 'r'))
 
 # fit the corrections
-functions.fit_corrections(cluster_list, read_in=True, plot=False)
+functions.fit_corrections(cluster_list, read_in=True, plot=True)
 #
 # write results to a file
 functions.write_results(cluster_list)
