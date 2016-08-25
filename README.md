@@ -1,6 +1,10 @@
 RedshiftFinding
 ===============
 
+## Note: This is an old code that is totally outdated. I just have it here for reference, since there were a few cool things I did here. The correct code to use is [rsz](https://github.com/gillenbrown/rsz). It actually works, and is documented well. Check it out.
+
+### Now back to the old readme...
+
 Using stellar population synthesis models to find red sequence redshifts of galaxy clusters in the redshift range
 0.5-1.5. It can start with images or catalogs. Only 2 bands are needed, as long as then span the 4000Å break at
 redshift. This code currently handles r-z data, and will include [3.6] and [4.5] bands from IRAC soon. Additional bands
